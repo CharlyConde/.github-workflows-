@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
 )
 
-# 2. CSS personalizado avanzadado con fondos suaves por temática
+# 2. CSS personalizado avanzado con fondos suaves garantizados por pestaña
 st.markdown(
     """
     <style>
@@ -25,27 +25,63 @@ st.markdown(
         
         /* Estilo elegante para las métricas */
         [data-testid="stMetric"] {
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.6) !important;
+            backdrop-filter: blur(5px);
             padding: 10px 15px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
-        /* Diseños de fondo suave para las pestañas */
-        div[data-baseweb="tab-panel"]:nth-child(2) {
-            background: linear-gradient(rgba(255,255,255,0.96), rgba(255,255,255,0.96)), 
-                        url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80");
+        /* --- FONDOS POR PESTAÑA CON SUPERPOSICIÓN SUAVE (GLASSMORPHISM) --- */
+
+        /* Pestaña 1: Histórico Completo (Textura de Césped/Estadio) */
+        div[role="tabpanel"]:nth-of-type(1) {
+            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
+                              url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200");
             background-size: cover;
+            background-attachment: fixed;
+            border-radius: 8px;
+            padding: 15px;
         }
-        div[data-baseweb="tab-panel"]:nth-child(3) {
-            background: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), 
-                        url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80");
+
+        /* Pestaña 2: Récords & KPIs (Trofeo/Estadio Iluminado) */
+        div[role="tabpanel"]:nth-of-type(2) {
+            background-image: linear-gradient(rgba(248, 249, 250, 0.92), rgba(248, 249, 250, 0.92)), 
+                              url("https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=80&w=1200");
             background-size: cover;
+            background-attachment: fixed;
+            border-radius: 8px;
+            padding: 15px;
         }
-        div[data-baseweb="tab-panel"]:nth-child(4) {
-            background: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), 
-                        url("https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80");
+
+        /* Pestaña 3: Mercado & Pujas (Balón en Césped) */
+        div[role="tabpanel"]:nth-of-type(3) {
+            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
+                              url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1200");
             background-size: cover;
+            background-attachment: fixed;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Pestaña 4: Rivales & Cláusulas (Estadio de Noche) */
+        div[role="tabpanel"]:nth-of-type(4) {
+            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
+                              url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1200");
+            background-size: cover;
+            background-attachment: fixed;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        /* Pestaña 5: Noticias LaLiga (Prensa/Periódico deportivo) */
+        div[role="tabpanel"]:nth-of-type(5) {
+            background-image: linear-gradient(rgba(248, 249, 250, 0.94), rgba(248, 249, 250, 0.94)), 
+                              url("https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200");
+            background-size: cover;
+            background-attachment: fixed;
+            border-radius: 8px;
+            padding: 15px;
         }
     </style>
 """,
