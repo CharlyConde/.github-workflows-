@@ -8,56 +8,29 @@ import streamlit as st
 
 import streamlit as st
 
-st.markdown("""
+st.markdown(
+    """
     <style>
-    /* 1. IMAGEN DE FONDO GLOBAL (En el área marcada con tus líneas blancas) */
-    .stApp {
-        background-size: cover !important;
-        background-position: center !important;
-        background-repeat: no-repeat !important;
-        background-attachment: fixed !important;
-        transition: background-image 0.5s ease-in-out;
+    /* Estilo base para todos los botones de la leyenda */
+    .leyenda-item, div[data-testid="stHorizontalBlock"] button {
+        color: #000000 !important;             /* Texto negro puro */
+        font-weight: 600 !important;            /* Texto seminegrita para mejor lectura */
+        opacity: 1 !important;                  /* Quita la transparencia/lavado */
+        filter: none !important;                /* Elimina efectos de brillo o desenfoque */
+        border: none !important;                /* Quita bordes transparentes */
+        box-shadow: none !important;            /* Quita sombras o resplandores */
     }
 
-    /* Asignación de imágenes a toda la pantalla por cada pestaña */
-    .stApp:has(button[id*="tab-0"][aria-selected="true"]) {
-        background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
-    }
-    .stApp:has(button[id*="tab-1"][aria-selected="true"]) {
-        background-image: url('https://images.unsplash.com/photo-1579952318893-20a3100263f2?q=80&w=1920') !important;
-    }
-    .stApp:has(button[id*="tab-2"][aria-selected="true"]) {
-        background-image: url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1920') !important;
-    }
-    .stApp:has(button[id*="tab-3"][aria-selected="true"]) {
-        background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1920') !important;
-    }
-    .stApp:has(button[id*="tab-4"][aria-selected="true"]) {
-        background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
-    }
-
-    /* 2. CONTENEDOR INTERNO TRANSPARENTE (Para que se vea la imagen de fondo detrás) */
-    .stMainBlockContainer, [data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-
-    /* 3. FIX DE BOTONES / LEYENDAS (Marcados en morado) */
-    /* Fuerza texto oscuro y legible sobre los botones de colores claros */
-    div[data-testid="stButton"] > button,
-    .stButton > button {
-        color: #111827 !important;
-        font-weight: 700 !important;
-        border: none !important;
-        box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
-    }
-
-    /* 4. TEXTOS GENERALES EN BLANCO */
-    h1, h2, h3, h4, p, span {
-        color: #ffffff !important;
-    }
+    /* Colores limpios y bien diferenciados (ajusta la clase o tag según tu HTML) */
+    .btn-compra    { background-color: #4A90E2 !important; } /* Azul */
+    .btn-venta     { background-color: #50E3C2 !important; } /* Verde */
+    .btn-subida    { background-color: #BD10E0 !important; } /* Morado */
+    .btn-subasta   { background-color: #F5A623 !important; } /* Naranja */
+    .btn-clausula  { background-color: #E35070 !important; } /* Rosa / Rojo */
     </style>
-""", unsafe_allow_html=True)
-
+    """,
+    unsafe_allow_html=True
+)
 # Formato financiero en euros (€) con separadores de miles
 def fmt(val):
     if pd.isna(val) or val is None:
