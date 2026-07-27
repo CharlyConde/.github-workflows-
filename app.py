@@ -8,7 +8,16 @@ import plotly.express as px
 import streamlit as st
 
 # ==========================================
-# CONFIGURACIÓN Y ESTILOS
+# CONFIGURACIÓN DE PÁGINA
+# ==========================================
+st.set_page_config(
+    page_title="Conde News | Biwenger Panel",
+    page_icon="🧛‍♂️",
+    layout="wide",
+)
+
+# ==========================================
+# CONFIGURACIÓN Y ESTILOS CSS
 # ==========================================
 st.markdown(
     """
@@ -29,12 +38,30 @@ st.markdown(
     .btn-subida    { background-color: #BD10E0 !important; } /* Morado */
     .btn-subasta   { background-color: #F5A623 !important; } /* Naranja */
     .btn-clausula  { background-color: #E35070 !important; } /* Rosa / Rojo */
+
+    /* Estilo para el contenedor del título principal con el logo de Biwenger */
+    .header-container {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+    .header-logo {
+        height: 65px;
+        width: auto;
+    }
+    .header-title {
+        font-size: 2.1rem;
+        font-weight: 800;
+        margin: 0;
+        line-height: 1.2;
+    }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# Configuración por defecto de Plotly para desactivar la barra de herramientas molesta
+# Configuración por defecto de Plotly para desactivar la barra de herramientas
 PLOTLY_CONFIG = {"displayModeBar": False}
 
 
@@ -162,7 +189,18 @@ def load_data():
 # ==========================================
 df = load_data()
 
-st.title("⚽ Panel Financiero & Mercado Biwenger")
+# --- HEADER PERSONALIZADO (LOGO OFICIAL BIWENGER + CONDE NEWS) ---
+st.markdown(
+    """
+    <div class="header-container">
+        <img src="https://biwenger.com/assets/images/logo.png" class="header-logo" alt="Biwenger Logo">
+        <div>
+            <div class="header-title">🧛‍♂️ ¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 if df is None or df.empty:
     st.info("Cargando datos o esperando primera actualización...")
