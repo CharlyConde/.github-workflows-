@@ -6,52 +6,53 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# CSS directo que detecta qué pestaña (st.tab) está activa
+import streamlit as st
+
 st.markdown("""
     <style>
-    /* 1. Resetear el contenedor para que no vuelva a ponerse blanco */
-    .stMainBlockContainer, [data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
-
-    /* 2. Configurar la imagen de fondo base para toda la app */
+    /* 1. IMAGEN DE FONDO GLOBAL (En el área marcada con tus líneas blancas) */
     .stApp {
         background-size: cover !important;
         background-position: center !important;
         background-repeat: no-repeat !important;
         background-attachment: fixed !important;
-        transition: background-image 0.4s ease-in-out;
+        transition: background-image 0.5s ease-in-out;
     }
 
-    /* --- CAMBIO DE IMAGEN SEGÚN LA PESTAÑA ACTIVA --- */
-
-    /* Pestaña 1: Histórico Completo */
+    /* Asignación de imágenes a toda la pantalla por cada pestaña */
     .stApp:has(button[id*="tab-0"][aria-selected="true"]) {
         background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
     }
-
-    /* Pestaña 2: Récords & KPIs */
     .stApp:has(button[id*="tab-1"][aria-selected="true"]) {
         background-image: url('https://images.unsplash.com/photo-1579952318893-20a3100263f2?q=80&w=1920') !important;
     }
-
-    /* Pestaña 3: Mercado & Pujas */
     .stApp:has(button[id*="tab-2"][aria-selected="true"]) {
         background-image: url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1920') !important;
     }
-
-    /* Pestaña 4: Rivales & Cláusulas */
     .stApp:has(button[id*="tab-3"][aria-selected="true"]) {
         background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1920') !important;
     }
-
-    /* Pestaña 5: Noticias LaLiga */
     .stApp:has(button[id*="tab-4"][aria-selected="true"]) {
         background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
     }
 
-    /* 3. Asegurar visibilidad de los textos principales */
-    h1, h2, h3, p, span {
+    /* 2. CONTENEDOR INTERNO TRANSPARENTE (Para que se vea la imagen de fondo detrás) */
+    .stMainBlockContainer, [data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+
+    /* 3. FIX DE BOTONES / LEYENDAS (Marcados en morado) */
+    /* Fuerza texto oscuro y legible sobre los botones de colores claros */
+    div[data-testid="stButton"] > button,
+    .stButton > button {
+        color: #111827 !important;
+        font-weight: 700 !important;
+        border: none !important;
+        box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    /* 4. TEXTOS GENERALES EN BLANCO */
+    h1, h2, h3, h4, p, span {
         color: #ffffff !important;
     }
     </style>
