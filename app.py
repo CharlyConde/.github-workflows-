@@ -34,6 +34,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Configuración por defecto de Plotly para desactivar la barra de herramientas molesta
+PLOTLY_CONFIG = {"displayModeBar": False}
+
 
 # ==========================================
 # FUNCIONES AUXILIARES DE FORMATO
@@ -331,10 +334,9 @@ with tab_kpis:
     df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
     
-    # Formatos auxiliares para gráficas
     df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
 
-    # --- GRAFICO 1: DINERO EN CAJA (FILA DEDICADA) ---
+    # --- GRÁFICO 1: DINERO EN CAJA ---
     st.subheader("💵 Dinero en Caja Estimado (Base 45M€)")
     fig_caja = px.bar(
         df_caja,
@@ -354,82 +356,81 @@ with tab_kpis:
         yaxis={"categoryorder": "total ascending", "title": ""},
         xaxis={"title": "Euros (€)"},
         coloraxis_showscale=False,
-        height=420,
-        margin=dict(l=20, r=40, t=10, b=20),
+        height=450,
+        margin=dict(l=20, r=50, t=20, b=20),
     )
-    st.plotly_chart(fig_caja, use_container_width=True)
+    st.plotly_chart(fig_caja, use_container_width=True, config=PLOTLY_CONFIG)
 
     st.divider()
 
-    # --- FILA DE 2 COLUMNAS ---
-    col_g1, col_g2 = st.columns(2)
-
-    with col_g1:
-        st.subheader("🔥 Sobrepujadores (% Medio)")
-        if not df_pujas_mercado.empty:
-            df_rank_pujas = (
-                df_pujas_mercado.groupby("Comprador")["Sobreprecio (%)"]
-                .mean()
-                .reset_index()
-                .sort_values(by="Sobreprecio (%)", ascending=False)
-            )
-            df_rank_pujas["Pct_Fmt"] = df_rank_pujas["Sobreprecio (%)"].apply(fmt_pct)
-
-            fig_rank1 = px.bar(
-                df_rank_pujas,
-                x="Sobreprecio (%)",
-                y="Comprador",
-                orientation="h",
-                color="Sobreprecio (%)",
-                color_continuous_scale="Reds",
-                custom_data=["Pct_Fmt"],
-            )
-            fig_rank1.update_traces(
-                texttemplate="%{customdata[0]}",
-                textposition="outside",
-                hovertemplate="<b>Manager:</b> %{y}<br><b>Sobrepuja Media:</b> %{customdata[0]}<extra></extra>",
-            )
-            fig_rank1.update_layout(
-                yaxis={"categoryorder": "total ascending", "title": ""},
-                xaxis={"title": "% Sobrepuja"},
-                coloraxis_showscale=False,
-                height=400,
-                margin=dict(l=20, r=40, t=10, b=20),
-            )
-            st.plotly_chart(fig_rank1, use_container_width=True)
-
-    with col_g2:
-        st.subheader("💰 Inversión Total por Mánager")
-        df_gastos = (
-            df.groupby("Comprador")["Precio Operación"].sum().reset_index()
+    # --- GRÁFICO 2: SOBREPUJADORES MEDIOS ---
+    st.subheader("🔥 Sobrepujadores (% Medio)")
+    if not df_pujas_mercado.empty:
+        df_rank_pujas = (
+            df_pujas_mercado.groupby("Comprador")["Sobreprecio (%)"]
+            .mean()
+            .reset_index()
+            .sort_values(by="Sobreprecio (%)", ascending=False)
         )
-        df_gastos = df_gastos[df_gastos["Comprador"] != "Mercado"].sort_values(
-            by="Precio Operación", ascending=False
-        )
-        df_gastos["Inversion_Fmt"] = df_gastos["Precio Operación"].apply(fmt)
+        df_rank_pujas["Pct_Fmt"] = df_rank_pujas["Sobreprecio (%)"].apply(fmt_pct)
 
-        fig_rank2 = px.bar(
-            df_gastos,
-            x="Precio Operación",
+        fig_rank1 = px.bar(
+            df_rank_pujas,
+            x="Sobreprecio (%)",
             y="Comprador",
             orientation="h",
-            color="Precio Operación",
-            color_continuous_scale="Blues",
-            custom_data=["Inversion_Fmt"],
+            color="Sobreprecio (%)",
+            color_continuous_scale="Reds",
+            custom_data=["Pct_Fmt"],
         )
-        fig_rank2.update_traces(
+        fig_rank1.update_traces(
             texttemplate="%{customdata[0]}",
             textposition="outside",
-            hovertemplate="<b>Manager:</b> %{y}<br><b>Inversión Total:</b> %{customdata[0]}<extra></extra>",
+            hovertemplate="<b>Manager:</b> %{y}<br><b>Sobrepuja Media:</b> %{customdata[0]}<extra></extra>",
         )
-        fig_rank2.update_layout(
+        fig_rank1.update_layout(
             yaxis={"categoryorder": "total ascending", "title": ""},
-            xaxis={"title": "Gasto Total (€)"},
+            xaxis={"title": "% Sobrepuja"},
             coloraxis_showscale=False,
-            height=400,
-            margin=dict(l=20, r=40, t=10, b=20),
+            height=450,
+            margin=dict(l=20, r=50, t=20, b=20),
         )
-        st.plotly_chart(fig_rank2, use_container_width=True)
+        st.plotly_chart(fig_rank1, use_container_width=True, config=PLOTLY_CONFIG)
+
+    st.divider()
+
+    # --- GRÁFICO 3: INVERSIÓN TOTAL ---
+    st.subheader("💰 Inversión Total por Mánager")
+    df_gastos = (
+        df.groupby("Comprador")["Precio Operación"].sum().reset_index()
+    )
+    df_gastos = df_gastos[df_gastos["Comprador"] != "Mercado"].sort_values(
+        by="Precio Operación", ascending=False
+    )
+    df_gastos["Inversion_Fmt"] = df_gastos["Precio Operación"].apply(fmt)
+
+    fig_rank2 = px.bar(
+        df_gastos,
+        x="Precio Operación",
+        y="Comprador",
+        orientation="h",
+        color="Precio Operación",
+        color_continuous_scale="Blues",
+        custom_data=["Inversion_Fmt"],
+    )
+    fig_rank2.update_traces(
+        texttemplate="%{customdata[0]}",
+        textposition="outside",
+        hovertemplate="<b>Manager:</b> %{y}<br><b>Inversión Total:</b> %{customdata[0]}<extra></extra>",
+    )
+    fig_rank2.update_layout(
+        yaxis={"categoryorder": "total ascending", "title": ""},
+        xaxis={"title": "Gasto Total (€)"},
+        coloraxis_showscale=False,
+        height=450,
+        margin=dict(l=20, r=50, t=20, b=20),
+    )
+    st.plotly_chart(fig_rank2, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
@@ -477,10 +478,10 @@ with tab_mercado:
     fig.update_layout(
         yaxis={"categoryorder": "total ascending", "title": ""},
         xaxis={"title": "Precio (€)"},
-        margin=dict(l=20, r=40, t=10, b=20),
-        height=360,
+        margin=dict(l=20, r=50, t=20, b=20),
+        height=380,
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
 # PESTAÑA 4: RIVALES & CLÁUSULAS
@@ -569,8 +570,8 @@ with tab_rivales:
             textposition="outside",
             hovertemplate="<b>Jugador:</b> %{x}<br><b>Precio:</b> %{customdata[0]}<br><b>Sobrepuja:</b> %{customdata[1]}<extra></extra>",
         )
-        fig_compras.update_layout(margin=dict(l=10, r=10, t=20, b=10), height=320)
-        st.plotly_chart(fig_compras, use_container_width=True)
+        fig_compras.update_layout(margin=dict(l=10, r=10, t=20, b=10), height=340)
+        st.plotly_chart(fig_compras, use_container_width=True, config=PLOTLY_CONFIG)
 
         df_c_tabla = df_compras_mercado[
             [
