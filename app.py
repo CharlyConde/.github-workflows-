@@ -261,12 +261,8 @@ with tab_kpis:
     ) * 100
 
     if not df_pujas_mercado.empty:
-        top_puja = df_pujas_mercado.loc[
-            df_pujas_mercado["Precio Operación"].idxmax()
-        ]
-        top_locura_pct = df_pujas_mercado.loc[
-            df_pujas_mercado["Sobreprecio (%)"].idxmax()
-        ]
+        top_puja = df_pujas_mercado.loc[df_pujas_mercado["Precio Operación"].idxmax()]
+        top_locura_pct = df_pujas_mercado.loc[df_pujas_mercado["Sobreprecio (%)"].idxmax()]
     else:
         top_puja = top_locura_pct = None
 
@@ -276,9 +272,7 @@ with tab_kpis:
         & (df["Vendedor"] != df["Comprador"])
     ]
     if not df_entre_rivales.empty:
-        top_traspaso = df_entre_rivales.loc[
-            df_entre_rivales["Precio Operación"].idxmax()
-        ]
+        top_traspaso = df_entre_rivales.loc[df_entre_rivales["Precio Operación"].idxmax()]
     else:
         top_traspaso = None
 
@@ -288,44 +282,28 @@ with tab_kpis:
     else:
         top_clau = None
 
+    # Muestras de KPIs superiores
     k1, k2, k3, k4 = st.columns(4)
 
     if top_puja is not None:
-        k1.metric(
-            "🎯 Mayor Puja al Mercado",
-            fmt(top_puja["Precio Operación"]),
-            f"{top_puja['Jugador']} ({top_puja['Comprador']})",
-        )
+        k1.metric("🎯 Mayor Puja Mercado", fmt(top_puja["Precio Operación"]), f"{top_puja['Jugador']}")
 
     if top_locura_pct is not None:
-        k2.metric(
-            "🚀 Mayor Sobrepuja (%)",
-            f"+{top_locura_pct['Sobreprecio (%)']:.1f}%",
-            f"{top_locura_pct['Jugador']} ({top_locura_pct['Comprador']})",
-        )
+        k2.metric("🚀 Mayor Sobrepuja (%)", f"+{top_locura_pct['Sobreprecio (%)']:.1f}%", f"{top_locura_pct['Jugador']}")
 
     if top_traspaso is not None:
-        k3.metric(
-            "⚡ Mayor Clausulazo / Traspaso",
-            fmt(top_traspaso["Precio Operación"]),
-            f"{top_traspaso['Jugador']} ({top_traspaso['Vendedor']} ➡️ {top_traspaso['Comprador']})",
-        )
+        k3.metric("⚡ Mayor Traspaso", fmt(top_traspaso["Precio Operación"]), f"{top_traspaso['Jugador']}")
     else:
-        k3.metric("⚡ Mayor Clausulazo", "Sin datos", "Sin traspasos")
+        k3.metric("⚡ Mayor Traspaso", "Sin datos", "Sin registros")
 
     if top_clau is not None:
-        k4.metric(
-            "🔒 Mayor Subida de Cláusula",
-            fmt(top_clau["Precio Operación"]),
-            f"{top_clau['Jugador']} ({top_clau['Comprador']})",
-        )
+        k4.metric("🔒 Mayor Subida Cláusula", fmt(top_clau["Precio Operación"]), f"{top_clau['Jugador']}")
 
     st.divider()
 
     # --- CÁLCULO DE DINERO EN CAJA (PRESUPUESTO INICIAL = 45M€) ---
     PRESUPUESTO_INICIAL = 45_000_000
 
-    # Gastos totales por mánager
     df_gastos_tot = (
         df[df["Comprador"] != "Mercado"]
         .groupby("Comprador")["Precio Operación"]
@@ -334,7 +312,6 @@ with tab_kpis:
     )
     df_gastos_tot.columns = ["Manager", "GastoTotal"]
 
-    # Ingresos totales por mánager
     df_ventas_tot = (
         df[df["Vendedor"] != "Mercado"]
         .groupby("Vendedor")["Precio Operación"]
@@ -343,14 +320,38 @@ with tab_kpis:
     )
     df_ventas_tot.columns = ["Manager", "IngresoTotal"]
 
-    # Balance general
     df_caja = pd.merge(df_gastos_tot, df_ventas_tot, on="Manager", how="outer").fillna(0)
     df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
 
-    col_rank1, col_rank2, col_rank3 = st.columns(3)
+    # --- DISTRIBUCIÓN EN 2 FILAS EN LUGAR DE APELOTONAR 3 COLUMNAS ---
+    
+    # FILA 1: Dinero en Caja (Destacado arriba)
+    st.subheader("💵 Dinero en Caja Estimado (Base 45M€)")
+    fig_caja = px.bar(
+        df_caja,
+        x="Caja_Estimada",
+        y="Manager",
+        orientation="h",
+        text_auto=".2s",
+        color="Caja_Estimada",
+        color_continuous_scale="Greens",
+    )
+    fig_caja.update_layout(
+        yaxis={"categoryorder": "total ascending", "title": ""},
+        xaxis={"title": "Euros (€)"},
+        coloraxis_showscale=False, # Oculta la barra de color lateral para ganar espacio
+        height=400,
+        margin=dict(l=20, r=20, t=10, b=20),
+    )
+    st.plotly_chart(fig_caja, use_container_width=True)
 
-    with col_rank1:
+    st.divider()
+
+    # FILA 2: Dos columnas para los otros 2 gráficos
+    col_g1, col_g2 = st.columns(2)
+
+    with col_g1:
         st.subheader("🔥 Sobrepujadores (% Medio)")
         if not df_pujas_mercado.empty:
             df_rank_pujas = (
@@ -370,14 +371,16 @@ with tab_kpis:
                 color_continuous_scale="Reds",
             )
             fig_rank1.update_layout(
-                yaxis={"categoryorder": "total ascending"},
-                height=340,
-                margin=dict(l=10, r=10, t=10, b=10),
+                yaxis={"categoryorder": "total ascending", "title": ""},
+                xaxis={"title": "% Sobrepuja"},
+                coloraxis_showscale=False,
+                height=400,
+                margin=dict(l=20, r=20, t=10, b=20),
             )
             st.plotly_chart(fig_rank1, use_container_width=True)
 
-    with col_rank2:
-        st.subheader("💰 Inversión Total")
+    with col_g2:
+        st.subheader("💰 Inversión Total por Mánager")
         df_gastos = (
             df.groupby("Comprador")["Precio Operación"].sum().reset_index()
         )
@@ -395,29 +398,13 @@ with tab_kpis:
             color_continuous_scale="Blues",
         )
         fig_rank2.update_layout(
-            yaxis={"categoryorder": "total ascending"},
-            height=340,
-            margin=dict(l=10, r=10, t=10, b=10),
+            yaxis={"categoryorder": "total ascending", "title": ""},
+            xaxis={"title": "Gasto Total (€)"},
+            coloraxis_showscale=False,
+            height=400,
+            margin=dict(l=20, r=20, t=10, b=20),
         )
         st.plotly_chart(fig_rank2, use_container_width=True)
-
-    with col_rank3:
-        st.subheader("💵 Dinero en Caja (45M€ Base)")
-        fig_rank3 = px.bar(
-            df_caja,
-            x="Caja_Estimada",
-            y="Manager",
-            orientation="h",
-            text_auto=".2s",
-            color="Caja_Estimada",
-            color_continuous_scale="Greens",
-        )
-        fig_rank3.update_layout(
-            yaxis={"categoryorder": "total ascending"},
-            height=340,
-            margin=dict(l=10, r=10, t=10, b=10),
-        )
-        st.plotly_chart(fig_rank3, use_container_width=True)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
