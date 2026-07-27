@@ -17,25 +17,6 @@ st.set_page_config(
     layout="wide",
 )
 
-
-# ==========================================
-# FUNCIÓN PARA CARGAR IMAGEN LOCAL A BASE64
-# ==========================================
-def get_base64_image(image_path):
-    """Convierte una imagen local a Data URI Base64 para HTML."""
-    if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            encoded = base64.b64encode(img_file.read()).decode()
-            ext = image_path.split(".")[-1].lower()
-            mime_type = "image/jpeg" if ext in ["jpg", "jpeg", "jfif"] else f"image/{ext}"
-            return f"data:{mime_type};base64,{encoded}"
-    return None
-
-
-# Carga del logo local
-LOGO_LOCAL_PATH = "logo1.jfif"
-logo_b64 = get_base64_image(LOGO_LOCAL_PATH)
-
 # ==========================================
 # CONFIGURACIÓN Y ESTILOS CSS
 # ==========================================
@@ -59,19 +40,9 @@ st.markdown(
     .btn-subasta   { background-color: #F5A623 !important; } /* Naranja */
     .btn-clausula  { background-color: #E35070 !important; } /* Rosa / Rojo */
 
-    /* Estilo para el contenedor del título principal con el logo de Biwenger */
-    .header-container {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-        margin-bottom: 20px;
-    }
-    .header-logo {
-        height: 75px;
-        width: auto;
-    }
-    .header-title {
-        font-size: 2.1rem;
+    /* Ajuste de tamaño para títulos */
+    .header-title-text {
+        font-size: 2rem;
         font-weight: 800;
         margin: 0;
         line-height: 1.2;
@@ -209,20 +180,22 @@ def load_data():
 # ==========================================
 df = load_data()
 
-# --- HEADER PERSONALIZADO CON LOGO EN BASE64 ---
-img_html = f'<img src="{logo_b64}" class="header-logo" alt="Biwenger Logo">' if logo_b64 else '⚽'
+# --- HEADER PERSONALIZADO MEDIANTE COLUMNAS DE STREAMLIT ---
+col_logo, col_titulo = st.columns([1, 8], vertical_alignment="center")
 
-st.markdown(
-    f"""
-    <div class="header-container">
-        {img_html}
-        <div>
-            <div class="header-title">🧛‍♂️ ¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+with col_logo:
+    if os.path.exists("logo1.jfif"):
+        st.image("logo1.jfif", width=85)
+    else:
+        st.write("⚽")
+
+with col_titulo:
+    st.markdown(
+        '<div class="header-title-text">🧛‍♂️ ¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>',
+        unsafe_allow_html=True,
+    )
+
+st.markdown("<br>", unsafe_allow_html=True)
 
 if df is None or df.empty:
     st.info("Cargando datos o esperando primera actualización...")
@@ -353,14 +326,16 @@ with tab_kpis:
     else:
         top_clau = None
 
-    k1, k2, k3, k4 = st.columns(4)
-
+    # --- DISTRIBUCIÓN DE KPIS EN MÁXIMO 2 POR FILA (2x2) ---
+    k1, k2 = st.columns(2)
     if top_puja is not None:
         k1.metric("🎯 Mayor Puja Mercado", fmt(top_puja["Precio Operación"]), f"{top_puja['Jugador']}")
-
     if top_locura_pct is not None:
         k2.metric("🚀 Mayor Sobrepuja (%)", fmt_pct(top_locura_pct["Sobreprecio (%)"]), f"{top_locura_pct['Jugador']}")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    k3, k4 = st.columns(2)
     if top_traspaso is not None:
         k3.metric("⚡ Mayor Traspaso", fmt(top_traspaso["Precio Operación"]), f"{top_traspaso['Jugador']}")
     else:
