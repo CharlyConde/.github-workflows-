@@ -6,7 +6,108 @@ import streamlit as st
 # Configuración de la página
 st.set_page_config(
     page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
-)
+)# ==========================================
+# PESTAÑA 3: RIVALES (Análisis por Manager)
+# ==========================================
+with tab_rivales:
+    st.header("👥 Análisis de Rivales y Competencia")
+
+    # 1. FILTRO DE COMPRAS PURAS DE MERCADO (Sin clausulazos ni ventas)
+    # Excluimos operaciones que no sean pujas reales de mercado
+    df_compras_puras = df[
+        (df["Vendedor"] == "Mercado")
+        & (df["Tipo"] == "market")
+        & (df["Precio Operación"] >= df["Valor Mercado"])
+    ].copy()
+
+    # Calcular sobrepujas reales
+    df_compras_puras["Sobreprecio (€)"] = (
+        df_compras_puras["Precio Operación"] - df_compras_puras["Valor Mercado"]
+    )
+    df_compras_puras["Sobreprecio (%)"] = (
+        df_compras_puras["Sobreprecio (€)"] / df_compras_puras["Valor Mercado"]
+    ) * 100
+
+    # Selector de Rival
+    lista_rivales = sorted(df_compras_puras["Comprador"].unique().tolist())
+    rival_seleccionado = st.selectbox("🔍 Selecciona un Rival:", lista_rivales)
+
+    # Filtrar datos del rival elegido
+    df_rival_compras = df_compras_puras[
+        df_compras_puras["Comprador"] == rival_seleccionado
+    ]
+
+    st.divider()
+
+    # --- SECCIÓN A: COMPRAS Y SOBREPUJAS ---
+    st.subheader(f"🛒 Fichajes y Pujas de {rival_seleccionado}")
+
+    col1, col2, col3 = st.columns(3)
+    gastado_total = df_rival_compras["Precio Operación"].sum()
+    sobrepuja_media = df_rival_compras["Sobreprecio (%)"].mean()
+    fichajes_totales = len(df_rival_compras)
+
+    col1.metric("Inversión en Mercado", f"{gastado_total:,.0f} €")
+    col2.metric("Nº Fichajes Reales", f"{fichajes_totales}")
+    col3.metric(
+        "Sobrepuja Media Real",
+        f"+{sobrepuja_media:.1f}%" if pd.notnull(sobrepuja_media) else "0%",
+    )
+
+    # Gráfico Top Fichajes (Solo Compras Puras)
+    if not df_rival_compras.empty:
+        fig_rival = px.bar(
+            df_rival_compras.nlargest(8, "Precio Operación"),
+            x="Jugador",
+            y="Precio Operación",
+            text_auto=".2s",
+            color="Sobreprecio (%)",
+            color_continuous_scale="Reds",
+            title=f"Principales Pujas de {rival_seleccionado}",
+        )
+        fig_rival.update_layout(margin=dict(l=10, r=10, t=30, b=10), height=350)
+        st.plotly_chart(fig_rival, use_container_width=True)
+
+        # Tabla de Compras Limpia
+        st.dataframe(
+            df_rival_compras[
+                [
+                    "Fecha",
+                    "Jugador",
+                    "Precio Operación",
+                    "Valor Mercado",
+                    "Sobreprecio (%)",
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
+
+    st.divider()
+
+    # --- SECCIÓN B: VENTAS Y DESINVERSIONES ---
+    st.subheader(f"💰 Ventas Realizadas por {rival_seleccionado}")
+
+    # Filtrar cuando el rival actúa como VENDEDOR
+    df_rival_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
+
+    if df_rival_ventas.empty:
+        st.info("Este manager aún no ha realizado ventas registradas.")
+    else:
+        total_ingresado = df_rival_ventas["Precio Operación"].sum()
+        ventas_totales = len(df_rival_ventas)
+
+        col_v1, col_v2 = st.columns(2)
+        col_v1.metric("Total Ingresado por Ventas", f"{total_ingresado:,.0f} €")
+        col_v2.metric("Nº de Ventas", f"{ventas_totales}")
+
+        st.dataframe(
+            df_rival_ventas[
+                ["Fecha", "Jugador", "Comprador", "Precio Operación", "Tipo"]
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
 
 
 # Cargar datos
