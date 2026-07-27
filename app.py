@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
 )
 
-# 2. CSS personalizado avanzado con fondos suaves garantizados por pestaña
+# 2. CSS personalizado para fondo GLOBAL de la aplicación (marco exterior)
 st.markdown(
     """
     <style>
@@ -22,72 +22,32 @@ st.markdown(
         h1 { font-size: 1.8rem !important; padding-bottom: 0rem !important; }
         h2, h3 { font-size: 1.2rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
         hr { margin-top: 0.8rem !important; margin-bottom: 0.8rem !important; }
-        
-        /* Estilo elegante para las métricas */
+
+        /* FONDO GLOBAL DE LA APP (Fuera de las tarjetas/tablas) */
+        .stApp {
+            background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), 
+                        url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1600") no-repeat center center fixed;
+            background-size: cover !important;
+        }
+
+        /* TARJETAS INTERNAS (Conserva el fondo limpio para las tablas) */
+        div[role="tabpanel"] {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Ajuste de métricas dentro de las tarjetas */
         [data-testid="stMetric"] {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            backdrop-filter: blur(5px);
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-        }
-
-        /* --- FONDOS POR PESTAÑA CON SUPERPOSICIÓN SUAVE (GLASSMORPHISM) --- */
-
-        /* Pestaña 1: Histórico Completo (Textura de Césped/Estadio) */
-        div[role="tabpanel"]:nth-of-type(1) {
-            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
-                              url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1200");
-            background-size: cover;
-            background-attachment: fixed;
+            background-color: rgba(240, 242, 246, 0.8) !important;
             border-radius: 8px;
-            padding: 15px;
-        }
-
-        /* Pestaña 2: Récords & KPIs (Trofeo/Estadio Iluminado) */
-        div[role="tabpanel"]:nth-of-type(2) {
-            background-image: linear-gradient(rgba(248, 249, 250, 0.92), rgba(248, 249, 250, 0.92)), 
-                              url("https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=80&w=1200");
-            background-size: cover;
-            background-attachment: fixed;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        /* Pestaña 3: Mercado & Pujas (Balón en Césped) */
-        div[role="tabpanel"]:nth-of-type(3) {
-            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
-                              url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1200");
-            background-size: cover;
-            background-attachment: fixed;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        /* Pestaña 4: Rivales & Cláusulas (Estadio de Noche) */
-        div[role="tabpanel"]:nth-of-type(4) {
-            background-image: linear-gradient(rgba(248, 249, 250, 0.93), rgba(248, 249, 250, 0.93)), 
-                              url("https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1200");
-            background-size: cover;
-            background-attachment: fixed;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        /* Pestaña 5: Noticias LaLiga (Prensa/Periódico deportivo) */
-        div[role="tabpanel"]:nth-of-type(5) {
-            background-image: linear-gradient(rgba(248, 249, 250, 0.94), rgba(248, 249, 250, 0.94)), 
-                              url("https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=1200");
-            background-size: cover;
-            background-attachment: fixed;
-            border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
         }
     </style>
 """,
     unsafe_allow_html=True,
 )
-
 
 # Formato financiero en euros (€) con separadores de miles
 def fmt(val):
