@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
 )
 
-# 2. CSS personalizado para compactar espacio y maximizar visualización
+# 2. CSS personalizado
 st.markdown(
     """
     <style>
@@ -19,19 +19,9 @@ st.markdown(
             padding-top: 1.5rem !important;
             padding-bottom: 1rem !important;
         }
-        h1 {
-            font-size: 1.8rem !important;
-            padding-bottom: 0rem !important;
-        }
-        h2, h3 {
-            font-size: 1.2rem !important;
-            margin-top: 0.5rem !important;
-            margin-bottom: 0.5rem !important;
-        }
-        hr {
-            margin-top: 0.8rem !important;
-            margin-bottom: 0.8rem !important;
-        }
+        h1 { font-size: 1.8rem !important; padding-bottom: 0rem !important; }
+        h2, h3 { font-size: 1.2rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+        hr { margin-top: 0.8rem !important; margin-bottom: 0.8rem !important; }
     </style>
 """,
     unsafe_allow_html=True,
@@ -45,8 +35,42 @@ def fmt(val):
     return f"{val:,.0f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-# Función para obtener noticias RSS en texto directo
-@st.cache_data(ttl=1800)  # Se actualiza cada 30 min
+# Función para colorear filas según el tipo de operación
+def color_rows(row):
+    tipo = row.get("Tipo", "")
+    vendedor = row.get("Vendedor", "")
+    comprador = row.get("Comprador", "")
+    precio = row.get("_Precio_Num", 0)
+    vm = row.get("_VM_Num", 0)
+
+    # 1. Compra a Mercado
+    if tipo == "market" and vendedor == "Mercado":
+        return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
+
+    # 2. Venta a Mercado
+    elif tipo == "transfer" and comprador == "Mercado":
+        return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
+
+    # 3. Subida de Cláusula
+    elif tipo == "clauseIncrement":
+        return ["background-color: #f3e8ff; color: #4a154b;"] * len(row)
+
+    # 4. Traspaso entre Managers (Clausulazo vs Subasta/Acuerdo)
+    elif vendedor != "Mercado" and comprador != "Mercado":
+        # Si el precio pagado es exacto al valor de mercado o cláusula -> Clausulazo
+        if precio <= vm or abs(precio - vm) < 1000:
+            return [
+                "background-color: #ffebee; color: #b71c1c; font-weight: bold;"
+            ] * len(row)
+        else:
+            # Si hay un sobreprecio o negociación distinta -> Subasta / Acuerdo
+            return ["background-color: #fff3e0; color: #e65100;"] * len(row)
+
+    return [""] * len(row)
+
+
+# Función para obtener noticias RSS
+@st.cache_data(ttl=1800)
 def fetch_rss_news():
     urls = [
         "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
@@ -78,7 +102,6 @@ def fetch_rss_news():
                     else ""
                 )
 
-                # Limpieza rápida de etiquetas HTML en la descripción
                 desc_clean = (
                     desc.replace("<p>", "")
                     .replace("</p>", "")
@@ -143,14 +166,68 @@ tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
 with tab_inicio:
     st.caption(f"Mostrando el histórico de {len(df)} registros procesados.")
 
+    # Leyenda de Colores estilo Banner
+    st.markdown(
+        """
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
+            <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra Mercado</span>
+            <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta Mercado</span>
+            <span style="background-color: #f3e8ff; color: #4a154b; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subida Cláusula</span>
+            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Subasta / Acuerdo Rival</span>
+            <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo Rival</span>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
     df_inicio = df.copy()
-    if "Precio Operación" in df_inicio.columns:
-        df_inicio["Precio Operación"] = df_inicio["Precio Operación"].apply(fmt)
-    if "Valor Mercado" in df_inicio.columns:
-        df_inicio["Valor Mercado"] = df_inicio["Valor Mercado"].apply(fmt)
+
+    # Guardar auxiliares numéricos para lógica de colores
+    df_inicio["_Precio_Num"] = df_inicio["Precio Operación"]
+    df_inicio["_VM_Num"] = df_inicio["Valor Mercado"]
+
+    # Calcular sobreprecio numérico
+    df_inicio["Sobreprecio (€)"] = (
+        df_inicio["Precio Operación"] - df_inicio["Valor Mercado"]
+    )
+    df_inicio["Sobreprecio (%)"] = (
+        df_inicio["Sobreprecio (€)"]
+        / df_inicio["Valor Mercado"].replace(0, 1)
+    ) * 100
+
+    # Aplicar formato de texto financiero
+    df_inicio_formatted = df_inicio.copy()
+    df_inicio_formatted["Precio Operación"] = df_inicio_formatted[
+        "Precio Operación"
+    ].apply(fmt)
+    df_inicio_formatted["Valor Mercado"] = df_inicio_formatted[
+        "Valor Mercado"
+    ].apply(fmt)
+    df_inicio_formatted["Sobreprecio (€)"] = df_inicio_formatted[
+        "Sobreprecio (€)"
+    ].apply(fmt)
+    df_inicio_formatted["Sobreprecio (%)"] = df_inicio_formatted[
+        "Sobreprecio (%)"
+    ].apply(lambda x: f"+{x:.1f}%" if x > 0 else f"{x:.1f}%")
+
+    # Reordenar columnas limpias
+    cols_mostrar = [
+        "Fecha",
+        "Jugador",
+        "Vendedor",
+        "Comprador",
+        "Precio Operación",
+        "Valor Mercado",
+        "Sobreprecio (€)",
+        "Sobreprecio (%)",
+        "Tipo",
+    ]
+    df_styled = df_inicio_formatted[cols_mostrar].style.apply(
+        color_rows, axis=1
+    )
 
     st.dataframe(
-        df_inicio, hide_index=True, use_container_width=True, height=730
+        df_styled, hide_index=True, use_container_width=True, height=730
     )
 
 # ==========================================
@@ -508,7 +585,6 @@ with tab_noticias:
     if not noticias:
         st.warning("No se han podido cargar las noticias en este momento.")
     else:
-        # Filtro de búsqueda rápida dentro de las noticias
         busqueda = st.text_input(
             "🔍 Buscar jugador o equipo en noticias:",
             placeholder="Ej: Mbappe, Williams, Betis...",
