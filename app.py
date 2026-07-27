@@ -4,9 +4,9 @@ import streamlit as st
 
 # Configuración de la página web (Título y layout ancho)
 st.set_page_config(
-    page_page_title="Liga Biwenger - Stats & Financas",
+    page_title="Liga Biwenger - Stats & Finanzas",
     page_icon="⚽",
-    layout="wide",
+    layout="wide"
 )
 
 st.title("⚽ Panel Financiero & Mercado Biwenger")
