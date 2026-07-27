@@ -322,10 +322,36 @@ with tab_kpis:
 
     st.divider()
 
-    col_rank1, col_rank2 = st.columns(2)
+    # --- CÁLCULO DE DINERO EN CAJA (PRESUPUESTO INICIAL = 45M€) ---
+    PRESUPUESTO_INICIAL = 45_000_000
+
+    # Gastos totales por mánager
+    df_gastos_tot = (
+        df[df["Comprador"] != "Mercado"]
+        .groupby("Comprador")["Precio Operación"]
+        .sum()
+        .reset_index()
+    )
+    df_gastos_tot.columns = ["Manager", "GastoTotal"]
+
+    # Ingresos totales por mánager
+    df_ventas_tot = (
+        df[df["Vendedor"] != "Mercado"]
+        .groupby("Vendedor")["Precio Operación"]
+        .sum()
+        .reset_index()
+    )
+    df_ventas_tot.columns = ["Manager", "IngresoTotal"]
+
+    # Balance general
+    df_caja = pd.merge(df_gastos_tot, df_ventas_tot, on="Manager", how="outer").fillna(0)
+    df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
+    df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
+
+    col_rank1, col_rank2, col_rank3 = st.columns(3)
 
     with col_rank1:
-        st.subheader("🔥 Ranking de Sobrepujadores (% Medio en Mercado)")
+        st.subheader("🔥 Sobrepujadores (% Medio)")
         if not df_pujas_mercado.empty:
             df_rank_pujas = (
                 df_pujas_mercado.groupby("Comprador")["Sobreprecio (%)"]
@@ -345,13 +371,13 @@ with tab_kpis:
             )
             fig_rank1.update_layout(
                 yaxis={"categoryorder": "total ascending"},
-                height=320,
+                height=340,
                 margin=dict(l=10, r=10, t=10, b=10),
             )
             st.plotly_chart(fig_rank1, use_container_width=True)
 
     with col_rank2:
-        st.subheader("💰 Ranking de Inversión Total por Mánager")
+        st.subheader("💰 Inversión Total")
         df_gastos = (
             df.groupby("Comprador")["Precio Operación"].sum().reset_index()
         )
@@ -370,10 +396,28 @@ with tab_kpis:
         )
         fig_rank2.update_layout(
             yaxis={"categoryorder": "total ascending"},
-            height=320,
+            height=340,
             margin=dict(l=10, r=10, t=10, b=10),
         )
         st.plotly_chart(fig_rank2, use_container_width=True)
+
+    with col_rank3:
+        st.subheader("💵 Dinero en Caja (45M€ Base)")
+        fig_rank3 = px.bar(
+            df_caja,
+            x="Caja_Estimada",
+            y="Manager",
+            orientation="h",
+            text_auto=".2s",
+            color="Caja_Estimada",
+            color_continuous_scale="Greens",
+        )
+        fig_rank3.update_layout(
+            yaxis={"categoryorder": "total ascending"},
+            height=340,
+            margin=dict(l=10, r=10, t=10, b=10),
+        )
+        st.plotly_chart(fig_rank3, use_container_width=True)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
