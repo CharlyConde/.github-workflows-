@@ -26,15 +26,15 @@ df = load_data()
 
 # Encabezado Principal
 st.title("⚽ Panel Financiero & Mercado Biwenger")
-st.caption("Análisis en tiempo real de sobrepujas, fichajes y presupuestos.")
+st.caption("Análisis en tiempo real de sobrepujas, fichajes, cláusulas y balance.")
 
 if df is None or df.empty:
     st.info("Cargando datos o esperando primera actualización...")
     st.stop()
 
-# --- PESTAÑAS DE NAVEGACIÓN (Perfecto para Móvil y PC) ---
+# --- PESTAÑAS DE NAVEGACIÓN ---
 tab_inicio, tab_mercado, tab_rivales = st.tabs(
-    ["🏠 Inicio", "📊 Mercado & Pujas", "👥 Rivales"]
+    ["🏠 Inicio", "📊 Mercado & Pujas", "👥 Rivales & Cláusulas"]
 )
 
 # ==========================================
@@ -43,15 +43,15 @@ tab_inicio, tab_mercado, tab_rivales = st.tabs(
 with tab_inicio:
     st.success(f"¡Datos cargados con éxito! ({len(df)} registros)")
 
-    # Tabla Resumen
-    st.subheader("📋 Últimos Movimientos")
+    # Tabla Resumen Últimos Movimientos
+    st.subheader("📋 Últimos Movimientos de la Liga")
     st.dataframe(df.head(10), hide_index=True, use_container_width=True)
 
 # ==========================================
 # PESTAÑA 2: MERCADO & SOBREPUJAS
 # ==========================================
 with tab_mercado:
-    st.header("📊 Análisis de Mercado")
+    st.header("📊 Análisis Global de Mercado")
 
     # Filtrar solo compras puras al mercado
     df_mercado = df[
@@ -68,12 +68,12 @@ with tab_mercado:
         df_mercado["Sobreprecio (€)"] / df_mercado["Valor Mercado"]
     ) * 100
 
-    # Métricas adaptadas a móvil
+    # Métricas adaptadas
     c1, c2, c3 = st.columns(3)
-    c1.metric("Total Operaciones Mercado", f"{len(df_mercado)}")
-    c2.metric("Sobrepuja Media Real", f"+{df_mercado['Sobreprecio (%)'].mean():.1f}%")
+    c1.metric("Total Pujas de Mercado", f"{len(df_mercado)}")
+    c2.metric("Sobrepuja Media Liga", f"+{df_mercado['Sobreprecio (%)'].mean():.1f}%")
     c3.metric(
-        "Sobrepuja Mediana Real", f"+{df_mercado['Sobreprecio (%)'].median():.1f}%"
+        "Sobrepuja Mediana Liga", f"+{df_mercado['Sobreprecio (%)'].median():.1f}%"
     )
 
     st.divider()
@@ -98,56 +98,97 @@ with tab_mercado:
     st.plotly_chart(fig, use_container_width=True)
 
 # ==========================================
-# PESTAÑA 3: RIVALES (Análisis por Manager)
+# PESTAÑA 3: RIVALES & CLÁUSULAS
 # ==========================================
 with tab_rivales:
-    st.header("👥 Análisis de Rivales y Competencia")
+    st.header("👥 Análisis 360º por Manager")
 
-    # 1. FILTRO DE COMPRAS PURAS DE MERCADO (Sin clausulazos ni ventas)
-    df_compras_puras = df[
-        (df["Vendedor"] == "Mercado")
+    # Obtener lista única de managers (compradores y vendedores)
+    todos_managers = set(df["Comprador"].unique()).union(set(df["Vendedor"].unique()))
+    if "Mercado" in todos_managers:
+        todos_managers.remove("Mercado")
+
+    lista_rivales = sorted(list(todos_managers))
+    rival_seleccionado = st.selectbox("🔍 Selecciona un Manager:", lista_rivales)
+
+    st.divider()
+
+    # --- 0. BALANCE FINANCIERO Y RESUMEN GENERAL ---
+    # Compras de Mercado Puras
+    df_compras_mercado = df[
+        (df["Comprador"] == rival_seleccionado)
+        & (df["Vendedor"] == "Mercado")
         & (df["Tipo"] == "market")
         & (df["Precio Operación"] >= df["Valor Mercado"])
     ].copy()
 
-    # Calcular sobrepujas reales
-    df_compras_puras["Sobreprecio (€)"] = (
-        df_compras_puras["Precio Operación"] - df_compras_puras["Valor Mercado"]
+    # Ventas totales realizadas
+    df_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
+
+    # Inversión en Cláusulas
+    df_clausulas = df[
+        (df["Comprador"] == rival_seleccionado) & (df["Tipo"] == "clauseIncrement")
+    ].copy()
+
+    # Clausulazos robados a rivales (Compra directa a otro manager)
+    df_robados = df[
+        (df["Comprador"] == rival_seleccionado)
+        & (df["Vendedor"] != "Mercado")
+        & (df["Vendedor"] != rival_seleccionado)
+    ].copy()
+
+    # Clausulazos recibidos / perdidos (Venta directa a otro manager)
+    df_perdidos = df[
+        (df["Vendedor"] == rival_seleccionado)
+        & (df["Comprador"] != "Mercado")
+        & (df["Comprador"] != rival_seleccionado)
+    ].copy()
+
+    # Cálculos Financieros
+    gasto_mercado = df_compras_mercado["Precio Operación"].sum()
+    gasto_clausulas = df_clausulas["Precio Operación"].sum()
+    gasto_robados = df_robados["Precio Operación"].sum()
+    gasto_total_general = gasto_mercado + gasto_clausulas + gasto_robados
+
+    ingreso_ventas = df_ventas["Precio Operación"].sum()
+    balance_neto = ingreso_ventas - gasto_total_general
+
+    # MÉTRES PRINCIPALES DEL BALANCE
+    st.subheader("💳 Balance Financiero")
+    m1, m2, m3, m4 = st.columns(4)
+
+    m1.metric("Gasto Total Acumulado", f"{gasto_total_general:,.0f} €")
+    m2.metric("Ingresos por Ventas", f"{ingreso_ventas:,.0f} €")
+    m3.metric(
+        "Balance Neto (€)",
+        f"{balance_neto:,.0f} €",
+        delta="Superávit" if balance_neto >= 0 else "Déficit",
     )
-    df_compras_puras["Sobreprecio (%)"] = (
-        df_compras_puras["Sobreprecio (€)"] / df_compras_puras["Valor Mercado"]
-    ) * 100
 
-    # Selector de Rival
-    lista_rivales = sorted(df_compras_puras["Comprador"].unique().tolist())
-    rival_seleccionado = st.selectbox("🔍 Selecciona un Rival:", lista_rivales)
-
-    # Filtrar datos del rival elegido
-    df_rival_compras = df_compras_puras[
-        df_compras_puras["Comprador"] == rival_seleccionado
-    ]
+    # Sobrepuja Media Real
+    if not df_compras_mercado.empty:
+        df_compras_mercado["Sobreprecio (%)"] = (
+            (
+                df_compras_mercado["Precio Operación"]
+                - df_compras_mercado["Valor Mercado"]
+            )
+            / df_compras_mercado["Valor Mercado"]
+        ) * 100
+        sobrepuja_media = df_compras_mercado["Sobreprecio (%)"].mean()
+        m4.metric("Sobrepuja Media Mercado", f"+{sobrepuja_media:.1f}%")
+    else:
+        m4.metric("Sobrepuja Media Mercado", "0%")
 
     st.divider()
 
-    # --- SECCIÓN A: COMPRAS Y SOBREPUJAS ---
-    st.subheader(f"🛒 Fichajes y Pujas de {rival_seleccionado}")
+    # --- SECCIÓN A: PUJAS DE MERCADO ---
+    st.subheader(f"🛒 Pujas de Mercado ({len(df_compras_mercado)} fichajes)")
 
-    col1, col2, col3 = st.columns(3)
-    gastado_total = df_rival_compras["Precio Operación"].sum()
-    sobrepuja_media = df_rival_compras["Sobreprecio (%)"].mean()
-    fichajes_totales = len(df_rival_compras)
-
-    col1.metric("Inversión en Mercado", f"{gastado_total:,.0f} €")
-    col2.metric("Nº Fichajes Reales", f"{fichajes_totales}")
-    col3.metric(
-        "Sobrepuja Media Real",
-        f"+{sobrepuja_media:.1f}%" if pd.notnull(sobrepuja_media) else "0%",
-    )
-
-    # Gráfico Top Fichajes (Solo Compras Puras)
-    if not df_rival_compras.empty:
-        fig_rival = px.bar(
-            df_rival_compras.nlargest(8, "Precio Operación"),
+    if df_compras_mercado.empty:
+        st.info("No hay fichajes directos de mercado registrados para este manager.")
+    else:
+        fig_compras = px.bar(
+            df_compras_mercado.nlargest(8, "Precio Operación"),
             x="Jugador",
             y="Precio Operación",
             text_auto=".2s",
@@ -155,12 +196,11 @@ with tab_rivales:
             color_continuous_scale="Reds",
             title=f"Principales Pujas de {rival_seleccionado}",
         )
-        fig_rival.update_layout(margin=dict(l=10, r=10, t=30, b=10), height=350)
-        st.plotly_chart(fig_rival, use_container_width=True)
+        fig_compras.update_layout(margin=dict(l=10, r=10, t=30, b=10), height=320)
+        st.plotly_chart(fig_compras, use_container_width=True)
 
-        # Tabla de Compras Limpia
         st.dataframe(
-            df_rival_compras[
+            df_compras_mercado[
                 [
                     "Fecha",
                     "Jugador",
@@ -175,24 +215,65 @@ with tab_rivales:
 
     st.divider()
 
-    # --- SECCIÓN B: VENTAS Y DESINVERSIONES ---
-    st.subheader(f"💰 Ventas Realizadas por {rival_seleccionado}")
+    # --- SECCIÓN B: SUBIDAS DE CLÁUSULAS ---
+    st.subheader(f"🔒 Inversión en Cláusulas ({len(df_clausulas)} subidas)")
 
-    # Filtrar cuando el rival actúa como VENDEDOR
-    df_rival_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
-
-    if df_rival_ventas.empty:
-        st.info("Este manager aún no ha realizado ventas registradas.")
+    if df_clausulas.empty:
+        st.info("Este manager no ha realizado subidas de cláusulas registradas.")
     else:
-        total_ingresado = df_rival_ventas["Precio Operación"].sum()
-        ventas_totales = len(df_rival_ventas)
-
-        col_v1, col_v2 = st.columns(2)
-        col_v1.metric("Total Ingresado por Ventas", f"{total_ingresado:,.0f} €")
-        col_v2.metric("Nº de Ventas", f"{ventas_totales}")
+        c_clau1, c_clau2 = st.columns(2)
+        c_clau1.metric("Gasto Total en Blindajes", f"{gasto_clausulas:,.0f} €")
+        c_clau2.metric("Nº Jugadores Subidos", f"{len(df_clausulas)}")
 
         st.dataframe(
-            df_rival_ventas[
+            df_clausulas[
+                ["Fecha", "Jugador", "Precio Operación", "Valor Mercado"]
+            ].rename(columns={"Precio Operación": "Inversión Cláusula"}),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+    st.divider()
+
+    # --- SECCIÓN C: CLAUSULAZOS Y TRASPASOS ENTRE RIVALES ---
+    col_rob, col_perd = st.columns(2)
+
+    with col_rob:
+        st.subheader(f"⚡ Robados a Rivales ({len(df_robados)})")
+        if df_robados.empty:
+            st.caption("No ha robado jugadores a otros managers.")
+        else:
+            st.dataframe(
+                df_robados[
+                    ["Fecha", "Jugador", "Vendedor", "Precio Operación"]
+                ].rename(columns={"Vendedor": "Victima"}),
+                hide_index=True,
+                use_container_width=True,
+            )
+
+    with col_perd:
+        st.subheader(f"🚨 Perdedores / Ventas a Rivales ({len(df_perdidos)})")
+        if df_perdidos.empty:
+            st.caption("No le han robado ni ha vendido a otros managers.")
+        else:
+            st.dataframe(
+                df_perdidos[
+                    ["Fecha", "Jugador", "Comprador", "Precio Operación"]
+                ].rename(columns={"Comprador": "Comprador Rival"}),
+                hide_index=True,
+                use_container_width=True,
+            )
+
+    st.divider()
+
+    # --- SECCIÓN D: VENTAS REALIZADAS ---
+    st.subheader(f"💰 Histórico de Ventas ({len(df_ventas)})")
+
+    if df_ventas.empty:
+        st.info("Este manager aún no ha realizado ventas.")
+    else:
+        st.dataframe(
+            df_ventas[
                 ["Fecha", "Jugador", "Comprador", "Precio Operación", "Tipo"]
             ],
             hide_index=True,
