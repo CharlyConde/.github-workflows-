@@ -11,7 +11,7 @@ st.set_page_config(
     page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
 )
 
-# 2. CSS personalizado
+# 2. CSS personalizado avanzadado con fondos suaves por temática
 st.markdown(
     """
     <style>
@@ -22,6 +22,31 @@ st.markdown(
         h1 { font-size: 1.8rem !important; padding-bottom: 0rem !important; }
         h2, h3 { font-size: 1.2rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
         hr { margin-top: 0.8rem !important; margin-bottom: 0.8rem !important; }
+        
+        /* Estilo elegante para las métricas */
+        [data-testid="stMetric"] {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Diseños de fondo suave para las pestañas */
+        div[data-baseweb="tab-panel"]:nth-child(2) {
+            background: linear-gradient(rgba(255,255,255,0.96), rgba(255,255,255,0.96)), 
+                        url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1200&q=80");
+            background-size: cover;
+        }
+        div[data-baseweb="tab-panel"]:nth-child(3) {
+            background: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), 
+                        url("https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=1200&q=80");
+            background-size: cover;
+        }
+        div[data-baseweb="tab-panel"]:nth-child(4) {
+            background: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), 
+                        url("https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80");
+            background-size: cover;
+        }
     </style>
 """,
     unsafe_allow_html=True,
@@ -37,9 +62,9 @@ def fmt(val):
 
 # Función para colorear filas según el tipo de operación
 def color_rows(row):
-    tipo = row.get("Tipo", "")
-    vendedor = row.get("Vendedor", "")
-    comprador = row.get("Comprador", "")
+    tipo = row.get("🏷️ Tipo", row.get("Tipo", ""))
+    vendedor = row.get("🏪 Vendedor", row.get("Vendedor", ""))
+    comprador = row.get("🛒 Comprador", row.get("Comprador", ""))
     precio = row.get("_Precio_Num", 0)
     vm = row.get("_VM_Num", 0)
 
@@ -57,13 +82,11 @@ def color_rows(row):
 
     # 4. Traspaso entre Managers (Clausulazo vs Subasta/Acuerdo)
     elif vendedor != "Mercado" and comprador != "Mercado":
-        # Si el precio pagado es exacto al valor de mercado o cláusula -> Clausulazo
         if precio <= vm or abs(precio - vm) < 1000:
             return [
                 "background-color: #ffebee; color: #b71c1c; font-weight: bold;"
             ] * len(row)
         else:
-            # Si hay un sobreprecio o negociación distinta -> Subasta / Acuerdo
             return ["background-color: #fff3e0; color: #e65100;"] * len(row)
 
     return [""] * len(row)
@@ -166,7 +189,6 @@ tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
 with tab_inicio:
     st.caption(f"Mostrando el histórico de {len(df)} registros procesados.")
 
-    # Leyenda de Colores estilo Banner
     st.markdown(
         """
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
@@ -182,11 +204,9 @@ with tab_inicio:
 
     df_inicio = df.copy()
 
-    # Guardar auxiliares numéricos para lógica de colores
     df_inicio["_Precio_Num"] = df_inicio["Precio Operación"]
     df_inicio["_VM_Num"] = df_inicio["Valor Mercado"]
 
-    # Calcular sobreprecio numérico
     df_inicio["Sobreprecio (€)"] = (
         df_inicio["Precio Operación"] - df_inicio["Valor Mercado"]
     )
@@ -195,7 +215,6 @@ with tab_inicio:
         / df_inicio["Valor Mercado"].replace(0, 1)
     ) * 100
 
-    # Aplicar formato de texto financiero
     df_inicio_formatted = df_inicio.copy()
     df_inicio_formatted["Precio Operación"] = df_inicio_formatted[
         "Precio Operación"
@@ -210,24 +229,32 @@ with tab_inicio:
         "Sobreprecio (%)"
     ].apply(lambda x: f"+{x:.1f}%" if x > 0 else f"{x:.1f}%")
 
-    # Reordenar columnas limpias
-    cols_mostrar = [
-        "Fecha",
-        "Jugador",
-        "Vendedor",
-        "Comprador",
-        "Precio Operación",
-        "Valor Mercado",
-        "Sobreprecio (€)",
-        "Sobreprecio (%)",
-        "Tipo",
-    ]
-    df_styled = df_inicio_formatted[cols_mostrar].style.apply(
-        color_rows, axis=1
-    )
+    # Mapeo de columnas con Iconos
+    column_map = {
+        "Fecha": "📅 Fecha",
+        "Jugador": "👤 Jugador",
+        "Vendedor": "🏪 Vendedor",
+        "Comprador": "🛒 Comprador",
+        "Precio Operación": "💰 Precio Operación",
+        "Valor Mercado": "📈 Valor Mercado",
+        "Sobreprecio (€)": "➕ Sobreprecio (€)",
+        "Sobreprecio (%)": "📊 Sobreprecio (%)",
+        "Tipo": "🏷️ Tipo",
+    }
+
+    df_inicio_formatted = df_inicio_formatted.rename(columns=column_map)
+
+    cols_mostrar = list(column_map.values())
+    df_styled = df_inicio_formatted[
+        cols_mostrar + ["_Precio_Num", "_VM_Num"]
+    ].style.apply(color_rows, axis=1)
 
     st.dataframe(
-        df_styled, hide_index=True, use_container_width=True, height=730
+        df_styled,
+        column_order=cols_mostrar,
+        hide_index=True,
+        use_container_width=True,
+        height=730,
     )
 
 # ==========================================
@@ -506,7 +533,19 @@ with tab_rivales:
             lambda x: f"+{x:.1f}%"
         )
 
-        st.dataframe(df_c_tabla, hide_index=True, use_container_width=True)
+        st.dataframe(
+            df_c_tabla.rename(
+                columns={
+                    "Fecha": "📅 Fecha",
+                    "Jugador": "👤 Jugador",
+                    "Precio Operación": "💰 Precio",
+                    "Valor Mercado": "📈 VM",
+                    "Sobreprecio (%)": "📊 sobrepuja",
+                }
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
 
     st.divider()
 
@@ -525,7 +564,14 @@ with tab_rivales:
             ].apply(fmt)
             df_cl_tabla["Valor Mercado"] = df_cl_tabla["Valor Mercado"].apply(fmt)
             st.dataframe(
-                df_cl_tabla.rename(columns={"Precio Operación": "Inversión"}),
+                df_cl_tabla.rename(
+                    columns={
+                        "Fecha": "📅 Fecha",
+                        "Jugador": "👤 Jugador",
+                        "Precio Operación": "🔒 Inversión",
+                        "Valor Mercado": "📈 VM",
+                    }
+                ),
                 hide_index=True,
                 use_container_width=True,
             )
@@ -544,7 +590,16 @@ with tab_rivales:
                     "Precio Operación"
                 ].apply(fmt)
                 st.dataframe(
-                    df_r_tabla, hide_index=True, use_container_width=True
+                    df_r_tabla.rename(
+                        columns={
+                            "Fecha": "📅 Fecha",
+                            "Jugador": "👤 Jugador",
+                            "Vendedor": "🏪 Víctima",
+                            "Precio Operación": "💰 Precio",
+                        }
+                    ),
+                    hide_index=True,
+                    use_container_width=True,
                 )
 
             if not df_perdidos.empty:
@@ -556,7 +611,16 @@ with tab_rivales:
                     "Precio Operación"
                 ].apply(fmt)
                 st.dataframe(
-                    df_p_tabla, hide_index=True, use_container_width=True
+                    df_p_tabla.rename(
+                        columns={
+                            "Fecha": "📅 Fecha",
+                            "Jugador": "👤 Jugador",
+                            "Comprador": "🛒 Comprador",
+                            "Precio Operación": "💰 Precio",
+                        }
+                    ),
+                    hide_index=True,
+                    use_container_width=True,
                 )
 
     st.divider()
@@ -569,7 +633,19 @@ with tab_rivales:
             ["Fecha", "Jugador", "Comprador", "Precio Operación", "Tipo"]
         ].copy()
         df_v_tabla["Precio Operación"] = df_v_tabla["Precio Operación"].apply(fmt)
-        st.dataframe(df_v_tabla, hide_index=True, use_container_width=True)
+        st.dataframe(
+            df_v_tabla.rename(
+                columns={
+                    "Fecha": "📅 Fecha",
+                    "Jugador": "👤 Jugador",
+                    "Comprador": "🛒 Comprador",
+                    "Precio Operación": "💰 Precio",
+                    "Tipo": "🏷️ Tipo",
+                }
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
 
 # ==========================================
 # PESTAÑA 5: NOTICIAS LIGA BBVA / LALIGA
