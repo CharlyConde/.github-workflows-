@@ -6,52 +6,54 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# 1. Definir la pestaña actual usando un selector (Tabs, Radio, Selectbox...)
-# Ejemplo con st.tabs u otro selector que uses:
-pestana = st.radio(
-    "Navegación",
-    ["Histórico Completo", "Récords & KPIs", "Mercado & Pujas", "Rivales & Cláusulas", "Noticias LaLiga"],
-    horizontal=True
-)
-
-# 2. Definir un color de fondo temático (elegante y oscuro o suave) para cada pestaña
-colores_fondo = {
-    "Histórico Completo": "#0f172a",   # Azul Slate Oscuro
-    "Récords & KPIs": "#1e1b4b",       # Índigo Oscuro
-    "Mercado & Pujas": "#111827",      # Gris Carbono Oscuro
-    "Rivales & Cláusulas": "#14532d",  # Verde Bosque Oscuro
-    "Noticias LaLiga": "#312e81"       # Violeta Oscuro
-}
-
-# Obtener el color actual
-color_actual = colores_fondo.get(pestana, "#0e1117")
-
-# 3. Inyectar el CSS global que cambia TODO el fondo y ajusta los textos
-st.markdown(f"""
+# CSS directo que detecta qué pestaña (st.tab) está activa
+st.markdown("""
     <style>
-    /* Cambia el fondo completo de la aplicación (fuera y dentro del contenedor) */
-    .stApp {{
-        background-color: {color_actual} !important;
-        transition: background-color 0.5s ease; /* Transición suave al cambiar */
-    }}
-    
-    /* Eliminar el fondo blanco forzado de los contenedores */
-    .stMainBlockContainer, [data-testid="stHeader"] {{
+    /* 1. Resetear el contenedor para que no vuelva a ponerse blanco */
+    .stMainBlockContainer, [data-testid="stHeader"] {
         background-color: transparent !important;
-    }}
+    }
 
-    /* Forzar que TODOS los textos e indicadores sean visibles (blancos/claros) */
-    h1, h2, h3, h4, h5, h6, p, span, label, [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {{
+    /* 2. Configurar la imagen de fondo base para toda la app */
+    .stApp {
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+        transition: background-image 0.4s ease-in-out;
+    }
+
+    /* --- CAMBIO DE IMAGEN SEGÚN LA PESTAÑA ACTIVA --- */
+
+    /* Pestaña 1: Histórico Completo */
+    .stApp:has(button[id*="tab-0"][aria-selected="true"]) {
+        background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
+    }
+
+    /* Pestaña 2: Récords & KPIs */
+    .stApp:has(button[id*="tab-1"][aria-selected="true"]) {
+        background-image: url('https://images.unsplash.com/photo-1579952318893-20a3100263f2?q=80&w=1920') !important;
+    }
+
+    /* Pestaña 3: Mercado & Pujas */
+    .stApp:has(button[id*="tab-2"][aria-selected="true"]) {
+        background-image: url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=1920') !important;
+    }
+
+    /* Pestaña 4: Rivales & Cláusulas */
+    .stApp:has(button[id*="tab-3"][aria-selected="true"]) {
+        background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=1920') !important;
+    }
+
+    /* Pestaña 5: Noticias LaLiga */
+    .stApp:has(button[id*="tab-4"][aria-selected="true"]) {
+        background-image: url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920') !important;
+    }
+
+    /* 3. Asegurar visibilidad de los textos principales */
+    h1, h2, h3, p, span {
         color: #ffffff !important;
-    }}
-    
-    /* Ajuste para tarjetas/métricas para que no queden transparentes sin contraste */
-    [data-testid="stMetric"] {{
-        background-color: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }}
+    }
     </style>
 """, unsafe_allow_html=True)
 
