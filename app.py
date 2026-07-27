@@ -1,4 +1,3 @@
-import base64
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -7,6 +6,12 @@ from urllib.request import Request, urlopen
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+# Intentamos importar PIL para un manejo seguro de imágenes PNG
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 # ==========================================
 # CONFIGURACIÓN DE PÁGINA
@@ -40,12 +45,12 @@ st.markdown(
     .btn-subasta   { background-color: #F5A623 !important; } /* Naranja */
     .btn-clausula  { background-color: #E35070 !important; } /* Rosa / Rojo */
 
-    /* Ajuste de tamaño para títulos */
+    /* Ajuste de tamaño para título principal */
     .header-title-text {
-        font-size: 2rem;
+        font-size: 2.1rem;
         font-weight: 800;
         margin: 0;
-        line-height: 1.2;
+        line-height: 1.25;
     }
     </style>
     """,
@@ -180,14 +185,18 @@ def load_data():
 # ==========================================
 df = load_data()
 
-# --- HEADER PERSONALIZADO MEDIANTE COLUMNAS DE STREAMLIT ---
-col_logo, col_titulo = st.columns([1, 8], vertical_alignment="center")
+# --- HEADER CON LOGO PNG LOCAL EN COLUMNAS ---
+col_logo, col_titulo = st.columns([1, 9], vertical_alignment="center")
+
+logo_file = "logo1.png"
 
 with col_logo:
-    if os.path.exists("logo1.jfif"):
-        st.image("logo1.jfif", width=85)
-    else:
-        st.write("⚽")
+    if os.path.exists(logo_file):
+        if Image is not None:
+            img = Image.open(logo_file)
+            st.image(img, width=90)
+        else:
+            st.image(logo_file, width=90)
 
 with col_titulo:
     st.markdown(
