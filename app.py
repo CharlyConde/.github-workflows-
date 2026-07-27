@@ -6,48 +6,54 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# 1. Configuración de la página
-st.set_page_config(
-    page_title="Biwenger Stats & Mercado", page_icon="⚽", layout="wide"
+# 1. Definir la pestaña actual usando un selector (Tabs, Radio, Selectbox...)
+# Ejemplo con st.tabs u otro selector que uses:
+pestana = st.radio(
+    "Navegación",
+    ["Histórico Completo", "Récords & KPIs", "Mercado & Pujas", "Rivales & Cláusulas", "Noticias LaLiga"],
+    horizontal=True
 )
 
-# 2. CSS personalizado para fondo GLOBAL de la aplicación (marco exterior)
-st.markdown(
-    """
+# 2. Definir un color de fondo temático (elegante y oscuro o suave) para cada pestaña
+colores_fondo = {
+    "Histórico Completo": "#0f172a",   # Azul Slate Oscuro
+    "Récords & KPIs": "#1e1b4b",       # Índigo Oscuro
+    "Mercado & Pujas": "#111827",      # Gris Carbono Oscuro
+    "Rivales & Cláusulas": "#14532d",  # Verde Bosque Oscuro
+    "Noticias LaLiga": "#312e81"       # Violeta Oscuro
+}
+
+# Obtener el color actual
+color_actual = colores_fondo.get(pestana, "#0e1117")
+
+# 3. Inyectar el CSS global que cambia TODO el fondo y ajusta los textos
+st.markdown(f"""
     <style>
-        .block-container {
-            padding-top: 1.5rem !important;
-            padding-bottom: 1rem !important;
-        }
-        h1 { font-size: 1.8rem !important; padding-bottom: 0rem !important; }
-        h2, h3 { font-size: 1.2rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
-        hr { margin-top: 0.8rem !important; margin-bottom: 0.8rem !important; }
+    /* Cambia el fondo completo de la aplicación (fuera y dentro del contenedor) */
+    .stApp {{
+        background-color: {color_actual} !important;
+        transition: background-color 0.5s ease; /* Transición suave al cambiar */
+    }}
+    
+    /* Eliminar el fondo blanco forzado de los contenedores */
+    .stMainBlockContainer, [data-testid="stHeader"] {{
+        background-color: transparent !important;
+    }}
 
-        /* FONDO GLOBAL DE LA APP (Fuera de las tarjetas/tablas) */
-        .stApp {
-            background: linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.65)), 
-                        url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1600") no-repeat center center fixed;
-            background-size: cover !important;
-        }
-
-        /* TARJETAS INTERNAS (Conserva el fondo limpio para las tablas) */
-        div[role="tabpanel"] {
-            background-color: rgba(255, 255, 255, 0.95) !important;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        /* Ajuste de métricas dentro de las tarjetas */
-        [data-testid="stMetric"] {
-            background-color: rgba(240, 242, 246, 0.8) !important;
-            border-radius: 8px;
-            padding: 10px;
-        }
+    /* Forzar que TODOS los textos e indicadores sean visibles (blancos/claros) */
+    h1, h2, h3, h4, h5, h6, p, span, label, [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {{
+        color: #ffffff !important;
+    }}
+    
+    /* Ajuste para tarjetas/métricas para que no queden transparentes sin contraste */
+    [data-testid="stMetric"] {{
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }}
     </style>
-""",
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
 # Formato financiero en euros (€) con separadores de miles
 def fmt(val):
