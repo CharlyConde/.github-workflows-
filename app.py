@@ -1,4 +1,5 @@
 import os
+import re
 import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
 
@@ -6,12 +7,13 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-import streamlit as st
-
+# ==========================================
+# CONFIGURACIÓN Y ESTILOS
+# ==========================================
 st.markdown(
     """
     <style>
-    /* Estilo base para todos los botones de la leyenda */
+    /* Estilo base para botones de leyenda y componentes */
     .leyenda-item, div[data-testid="stHorizontalBlock"] button {
         color: #000000 !important;             /* Texto negro puro */
         font-weight: 600 !important;            /* Texto seminegrita para mejor lectura */
@@ -21,7 +23,7 @@ st.markdown(
         box-shadow: none !important;            /* Quita sombras o resplandores */
     }
 
-    /* Colores limpios y bien diferenciados (ajusta la clase o tag según tu HTML) */
+    /* Colores por tipo de operación */
     .btn-compra    { background-color: #4A90E2 !important; } /* Azul */
     .btn-venta     { background-color: #50E3C2 !important; } /* Verde */
     .btn-subida    { background-color: #BD10E0 !important; } /* Morado */
@@ -29,17 +31,22 @@ st.markdown(
     .btn-clausula  { background-color: #E35070 !important; } /* Rosa / Rojo */
     </style>
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
-# Formato financiero en euros (€) con separadores de miles
+
+
+# ==========================================
+# FUNCIONES AUXILIARES
+# ==========================================
 def fmt(val):
+    """Formato financiero en euros (€) con separadores de miles."""
     if pd.isna(val) or val is None:
         return "-"
     return f"{val:,.0f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-# Función para colorear filas según el tipo de operación
 def color_rows(row):
+    """Colorea filas según el tipo de operación para DataFrames de Pandas."""
     tipo = row.get("🏷️ Tipo", row.get("Tipo", ""))
     vendedor = row.get("🏪 Vendedor", row.get("Vendedor", ""))
     comprador = row.get("🛒 Comprador", row.get("Comprador", ""))
@@ -70,9 +77,9 @@ def color_rows(row):
     return [""] * len(row)
 
 
-# Función para obtener noticias RSS
 @st.cache_data(ttl=1800)
 def fetch_rss_news():
+    """Obtiene y limpia noticias RSS de fútbol."""
     urls = [
         "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
         "https://as.com/rss/futbol/primera.xml",
@@ -109,8 +116,6 @@ def fetch_rss_news():
                     .replace("<br>", "\n")
                 )
                 if "<" in desc_clean and ">" in desc_clean:
-                    import re
-
                     desc_clean = re.sub("<[^<]+?>", "", desc_clean)
 
                 if title:
@@ -128,9 +133,9 @@ def fetch_rss_news():
     return noticias
 
 
-# Cargar datos con caché
 @st.cache_data(ttl=300)
 def load_data():
+    """Carga de datos con caché desde CSV o XLSX."""
     csv_file = "historial_biwenger_completo.csv"
     xlsx_file = "historial_biwenger_completo.xlsx"
 
@@ -141,9 +146,11 @@ def load_data():
     return None
 
 
+# ==========================================
+# APLICACIÓN PRINCIPAL
+# ==========================================
 df = load_data()
 
-# Encabezado Principal
 st.title("⚽ Panel Financiero & Mercado Biwenger")
 
 if df is None or df.empty:
@@ -176,7 +183,7 @@ with tab_inicio:
             <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Subasta / Acuerdo Rival</span>
             <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo Rival</span>
         </div>
-    """,
+        """,
         unsafe_allow_html=True,
     )
 
@@ -207,7 +214,6 @@ with tab_inicio:
         "Sobreprecio (%)"
     ].apply(lambda x: f"+{x:.1f}%" if x > 0 else f"{x:.1f}%")
 
-    # Mapeo de columnas con Iconos
     column_map = {
         "Fecha": "📅 Fecha",
         "Jugador": "👤 Jugador",
@@ -555,7 +561,7 @@ with tab_rivales:
             )
 
     with col_right:
-        st.subheader(f"⚡ Traspasos entre Rivales")
+        st.subheader("⚡ Traspasos entre Rivales")
         if df_robados.empty and df_perdidos.empty:
             st.caption("Sin traspasos directos con rivales.")
         else:
@@ -626,7 +632,7 @@ with tab_rivales:
         )
 
 # ==========================================
-# PESTAÑA 5: NOTICIAS LIGA BBVA / LALIGA
+# PESTAÑA 5: NOTICIAS LALIGA
 # ==========================================
 with tab_noticias:
     st.subheader("📰 Noticias LaLiga & Rumores de Fichajes")
