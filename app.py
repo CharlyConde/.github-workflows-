@@ -1,3 +1,4 @@
+import base64
 import os
 import re
 import xml.etree.ElementTree as ET
@@ -15,6 +16,25 @@ st.set_page_config(
     page_icon="🧛‍♂️",
     layout="wide",
 )
+
+
+# ==========================================
+# FUNCIÓN PARA CARGAR IMAGEN LOCAL A BASE64
+# ==========================================
+def get_base64_image(image_path):
+    """Convierte una imagen local a Data URI Base64 para HTML."""
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            encoded = base64.b64encode(img_file.read()).decode()
+            ext = image_path.split(".")[-1].lower()
+            mime_type = "image/jpeg" if ext in ["jpg", "jpeg", "jfif"] else f"image/{ext}"
+            return f"data:{mime_type};base64,{encoded}"
+    return None
+
+
+# Carga del logo local
+LOGO_LOCAL_PATH = "logo1.jfif"
+logo_b64 = get_base64_image(LOGO_LOCAL_PATH)
 
 # ==========================================
 # CONFIGURACIÓN Y ESTILOS CSS
@@ -47,7 +67,7 @@ st.markdown(
         margin-bottom: 20px;
     }
     .header-logo {
-        height: 65px;
+        height: 75px;
         width: auto;
     }
     .header-title {
@@ -189,11 +209,13 @@ def load_data():
 # ==========================================
 df = load_data()
 
-# --- HEADER PERSONALIZADO (LOGO OFICIAL BIWENGER + CONDE NEWS) ---
+# --- HEADER PERSONALIZADO CON LOGO EN BASE64 ---
+img_html = f'<img src="{logo_b64}" class="header-logo" alt="Biwenger Logo">' if logo_b64 else '⚽'
+
 st.markdown(
-    """
+    f"""
     <div class="header-container">
-        <img src="https://biwenger.com/assets/images/logo.png" class="header-logo" alt="Biwenger Logo">
+        {img_html}
         <div>
             <div class="header-title">🧛‍♂️ ¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
         </div>
