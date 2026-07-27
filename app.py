@@ -95,8 +95,69 @@ with tab_mercado:
     st.plotly_chart(fig, use_container_width=True)
 
 # ==========================================
-# PESTAÑA 3: RIVALES (En construcción)
+# PESTAÑA 3: RIVALES (Análisis por Manager)
 # ==========================================
 with tab_rivales:
-    st.header("👥 Análisis por Manager")
-    st.info("Próximamente: Estadísticas individuales de cada rival.")
+    st.header("👥 Análisis de Rivales y Competencia")
+
+    # Filtrar solo compras
+    df_compras = df[df["Vendedor"] == "Mercado"].copy()
+
+    if "Sobreprecio (€)" not in df_compras.columns:
+        df_compras["Sobreprecio (€)"] = (
+            df_compras["Precio Operación"] - df_compras["Valor Mercado"]
+        )
+    if "Sobreprecio (%)" not in df_compras.columns:
+        df_compras["Sobreprecio (%)"] = (
+            df_compras["Sobreprecio (€)"] / df_compras["Valor Mercado"]
+        ) * 100
+
+    # Selector de Rival (adaptado a móvil)
+    lista_rivales = sorted(df_compras["Comprador"].unique().tolist())
+    rival_seleccionado = st.selectbox("🔍 Selecciona un Rival:", lista_rivales)
+
+    # Filtrar datos del rival elegido
+    df_rival = df_compras[df_compras["Comprador"] == rival_seleccionado]
+
+    st.divider()
+
+    # Métricas clave del rival
+    col1, col2, col3 = st.columns(3)
+    gastado_total = df_rival["Precio Operación"].sum()
+    sobrepuja_media_rival = df_rival["Sobreprecio (%)"].mean()
+    fichajes_rival = len(df_rival)
+
+    col1.metric("Gasto Total Mercado", f"{gastado_total:,.0f} €")
+    col2.metric("Nº de Fichajes", f"{fichajes_rival}")
+    col3.metric("Sobrepuja Media", f"+{sobrepuja_media_rival:.1f}%")
+
+    # Gráfico de sus compras más caras
+    st.subheader(f"📌 Principales Fichajes de {rival_seleccionado}")
+    fig_rival = px.bar(
+        df_rival.nlargest(8, "Precio Operación"),
+        x="Jugador",
+        y="Precio Operación",
+        text_auto=".2s",
+        color="Sobreprecio (%)",
+        color_continuous_scale="Reds",
+    )
+    fig_rival.update_layout(
+        margin=dict(l=10, r=10, t=20, b=10),
+        height=350,
+    )
+    st.plotly_chart(fig_rival, use_container_width=True)
+
+    # Tabla detallada del rival
+    st.dataframe(
+        df_rival[
+            [
+                "Fecha",
+                "Jugador",
+                "Precio Operación",
+                "Valor Mercado",
+                "Sobreprecio (%)",
+            ]
+        ],
+        hide_index=True,
+        use_container_width=True,
+    )
