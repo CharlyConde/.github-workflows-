@@ -36,13 +36,21 @@ st.markdown(
 
 
 # ==========================================
-# FUNCIONES AUXILIARES
+# FUNCIONES AUXILIARES DE FORMATO
 # ==========================================
 def fmt(val):
-    """Formato financiero en euros (€) con separadores de miles."""
+    """Formato financiero con 1 decimal y formato español: 12.345.678,0 €"""
     if pd.isna(val) or val is None:
         return "-"
-    return f"{val:,.0f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"{val:,.1f} €".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def fmt_pct(val):
+    """Formato porcentaje con 1 decimal y formato español: +12,5%"""
+    if pd.isna(val) or val is None:
+        return "-"
+    signo = "+" if val > 0 else ""
+    return f"{signo}{val:,.1f}%".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def color_rows(row):
@@ -212,7 +220,7 @@ with tab_inicio:
     ].apply(fmt)
     df_inicio_formatted["Sobreprecio (%)"] = df_inicio_formatted[
         "Sobreprecio (%)"
-    ].apply(lambda x: f"+{x:.1f}%" if x > 0 else f"{x:.1f}%")
+    ].apply(fmt_pct)
 
     column_map = {
         "Fecha": "📅 Fecha",
@@ -282,14 +290,13 @@ with tab_kpis:
     else:
         top_clau = None
 
-    # Muestras de KPIs superiores
     k1, k2, k3, k4 = st.columns(4)
 
     if top_puja is not None:
         k1.metric("🎯 Mayor Puja Mercado", fmt(top_puja["Precio Operación"]), f"{top_puja['Jugador']}")
 
     if top_locura_pct is not None:
-        k2.metric("🚀 Mayor Sobrepuja (%)", f"+{top_locura_pct['Sobreprecio (%)']:.1f}%", f"{top_locura_pct['Jugador']}")
+        k2.metric("🚀 Mayor Sobrepuja (%)", fmt_pct(top_locura_pct["Sobreprecio (%)"]), f"{top_locura_pct['Jugador']}")
 
     if top_traspaso is not None:
         k3.metric("⚡ Mayor Traspaso", fmt(top_traspaso["Precio Operación"]), f"{top_traspaso['Jugador']}")
@@ -323,32 +330,38 @@ with tab_kpis:
     df_caja = pd.merge(df_gastos_tot, df_ventas_tot, on="Manager", how="outer").fillna(0)
     df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
-
-    # --- DISTRIBUCIÓN EN 2 FILAS EN LUGAR DE APELOTONAR 3 COLUMNAS ---
     
-    # FILA 1: Dinero en Caja (Destacado arriba)
+    # Formatos auxiliares para gráficas
+    df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
+
+    # --- GRAFICO 1: DINERO EN CAJA (FILA DEDICADA) ---
     st.subheader("💵 Dinero en Caja Estimado (Base 45M€)")
     fig_caja = px.bar(
         df_caja,
         x="Caja_Estimada",
         y="Manager",
         orientation="h",
-        text_auto=".2s",
         color="Caja_Estimada",
         color_continuous_scale="Greens",
+        custom_data=["Caja_Fmt"],
+    )
+    fig_caja.update_traces(
+        texttemplate="%{customdata[0]}",
+        textposition="outside",
+        hovertemplate="<b>Manager:</b> %{y}<br><b>Dinero en Caja:</b> %{customdata[0]}<extra></extra>",
     )
     fig_caja.update_layout(
         yaxis={"categoryorder": "total ascending", "title": ""},
         xaxis={"title": "Euros (€)"},
-        coloraxis_showscale=False, # Oculta la barra de color lateral para ganar espacio
-        height=400,
-        margin=dict(l=20, r=20, t=10, b=20),
+        coloraxis_showscale=False,
+        height=420,
+        margin=dict(l=20, r=40, t=10, b=20),
     )
     st.plotly_chart(fig_caja, use_container_width=True)
 
     st.divider()
 
-    # FILA 2: Dos columnas para los otros 2 gráficos
+    # --- FILA DE 2 COLUMNAS ---
     col_g1, col_g2 = st.columns(2)
 
     with col_g1:
@@ -360,22 +373,28 @@ with tab_kpis:
                 .reset_index()
                 .sort_values(by="Sobreprecio (%)", ascending=False)
             )
+            df_rank_pujas["Pct_Fmt"] = df_rank_pujas["Sobreprecio (%)"].apply(fmt_pct)
 
             fig_rank1 = px.bar(
                 df_rank_pujas,
                 x="Sobreprecio (%)",
                 y="Comprador",
                 orientation="h",
-                text_auto=".1f",
                 color="Sobreprecio (%)",
                 color_continuous_scale="Reds",
+                custom_data=["Pct_Fmt"],
+            )
+            fig_rank1.update_traces(
+                texttemplate="%{customdata[0]}",
+                textposition="outside",
+                hovertemplate="<b>Manager:</b> %{y}<br><b>Sobrepuja Media:</b> %{customdata[0]}<extra></extra>",
             )
             fig_rank1.update_layout(
                 yaxis={"categoryorder": "total ascending", "title": ""},
                 xaxis={"title": "% Sobrepuja"},
                 coloraxis_showscale=False,
                 height=400,
-                margin=dict(l=20, r=20, t=10, b=20),
+                margin=dict(l=20, r=40, t=10, b=20),
             )
             st.plotly_chart(fig_rank1, use_container_width=True)
 
@@ -387,22 +406,28 @@ with tab_kpis:
         df_gastos = df_gastos[df_gastos["Comprador"] != "Mercado"].sort_values(
             by="Precio Operación", ascending=False
         )
+        df_gastos["Inversion_Fmt"] = df_gastos["Precio Operación"].apply(fmt)
 
         fig_rank2 = px.bar(
             df_gastos,
             x="Precio Operación",
             y="Comprador",
             orientation="h",
-            text_auto=".2s",
             color="Precio Operación",
             color_continuous_scale="Blues",
+            custom_data=["Inversion_Fmt"],
+        )
+        fig_rank2.update_traces(
+            texttemplate="%{customdata[0]}",
+            textposition="outside",
+            hovertemplate="<b>Manager:</b> %{y}<br><b>Inversión Total:</b> %{customdata[0]}<extra></extra>",
         )
         fig_rank2.update_layout(
             yaxis={"categoryorder": "total ascending", "title": ""},
             xaxis={"title": "Gasto Total (€)"},
             coloraxis_showscale=False,
             height=400,
-            margin=dict(l=20, r=20, t=10, b=20),
+            margin=dict(l=20, r=40, t=10, b=20),
         )
         st.plotly_chart(fig_rank2, use_container_width=True)
 
@@ -427,15 +452,14 @@ with tab_mercado:
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Pujas Mercado", f"{len(df_mercado)}")
-    c2.metric("Sobrepuja Media Liga", f"+{df_mercado['Sobreprecio (%)'].mean():.1f}%")
-    c3.metric(
-        "Sobrepuja Mediana Liga", f"+{df_mercado['Sobreprecio (%)'].median():.1f}%"
-    )
+    c2.metric("Sobrepuja Media Liga", fmt_pct(df_mercado["Sobreprecio (%)"].mean()))
+    c3.metric("Sobrepuja Mediana Liga", fmt_pct(df_mercado["Sobreprecio (%)"].median()))
 
     st.divider()
 
     st.subheader("🔥 Top 10 Fichajes Más Caros del Mercado")
-    top10 = df_mercado.nlargest(10, "Precio Operación")
+    top10 = df_mercado.nlargest(10, "Precio Operación").copy()
+    top10["Precio_Fmt"] = top10["Precio Operación"].apply(fmt)
 
     fig = px.bar(
         top10,
@@ -443,12 +467,18 @@ with tab_mercado:
         y="Jugador",
         color="Comprador",
         orientation="h",
-        text_auto=".2s",
+        custom_data=["Precio_Fmt", "Comprador"],
+    )
+    fig.update_traces(
+        texttemplate="%{customdata[0]}",
+        textposition="outside",
+        hovertemplate="<b>Jugador:</b> %{y}<br><b>Comprador:</b> %{customdata[1]}<br><b>Precio:</b> %{customdata[0]}<extra></extra>",
     )
     fig.update_layout(
-        yaxis={"categoryorder": "total ascending"},
-        margin=dict(l=10, r=10, t=10, b=10),
-        height=320,
+        yaxis={"categoryorder": "total ascending", "title": ""},
+        xaxis={"title": "Precio (€)"},
+        margin=dict(l=20, r=40, t=10, b=20),
+        height=360,
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -511,9 +541,9 @@ with tab_rivales:
             / df_compras_mercado["Valor Mercado"]
         ) * 100
         sobrepuja_media = df_compras_mercado["Sobreprecio (%)"].mean()
-        m4.metric("Sobrepuja Media", f"+{sobrepuja_media:.1f}%")
+        m4.metric("Sobrepuja Media", fmt_pct(sobrepuja_media))
     else:
-        m4.metric("Sobrepuja Media", "0%")
+        m4.metric("Sobrepuja Media", "0,0%")
 
     st.divider()
 
@@ -522,15 +552,24 @@ with tab_rivales:
     if df_compras_mercado.empty:
         st.info("Sin fichajes directos de mercado.")
     else:
+        top_compras_rival = df_compras_mercado.nlargest(8, "Precio Operación").copy()
+        top_compras_rival["Precio_Fmt"] = top_compras_rival["Precio Operación"].apply(fmt)
+        top_compras_rival["Sobreprecio_Fmt"] = top_compras_rival["Sobreprecio (%)"].apply(fmt_pct)
+
         fig_compras = px.bar(
-            df_compras_mercado.nlargest(8, "Precio Operación"),
+            top_compras_rival,
             x="Jugador",
             y="Precio Operación",
-            text_auto=".2s",
             color="Sobreprecio (%)",
             color_continuous_scale="Reds",
+            custom_data=["Precio_Fmt", "Sobreprecio_Fmt"],
         )
-        fig_compras.update_layout(margin=dict(l=10, r=10, t=10, b=10), height=280)
+        fig_compras.update_traces(
+            texttemplate="%{customdata[0]}",
+            textposition="outside",
+            hovertemplate="<b>Jugador:</b> %{x}<br><b>Precio:</b> %{customdata[0]}<br><b>Sobrepuja:</b> %{customdata[1]}<extra></extra>",
+        )
+        fig_compras.update_layout(margin=dict(l=10, r=10, t=20, b=10), height=320)
         st.plotly_chart(fig_compras, use_container_width=True)
 
         df_c_tabla = df_compras_mercado[
@@ -544,9 +583,7 @@ with tab_rivales:
         ].copy()
         df_c_tabla["Precio Operación"] = df_c_tabla["Precio Operación"].apply(fmt)
         df_c_tabla["Valor Mercado"] = df_c_tabla["Valor Mercado"].apply(fmt)
-        df_c_tabla["Sobreprecio (%)"] = df_c_tabla["Sobreprecio (%)"].apply(
-            lambda x: f"+{x:.1f}%"
-        )
+        df_c_tabla["Sobreprecio (%)"] = df_c_tabla["Sobreprecio (%)"].apply(fmt_pct)
 
         st.dataframe(
             df_c_tabla.rename(
