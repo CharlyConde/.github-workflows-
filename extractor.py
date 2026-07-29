@@ -32,7 +32,7 @@ if res_players.status_code == 200:
             'precio': p_data.get('price', 0),
         }
 
-# 2. Extraer historial incluyendo 'auction' y los tipos de cláusulas
+# 2. Extraer historial incluyendo 'auction' y los tipos de operaciones
 url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement,clause,auction&limit=100'
 response = requests.get(url_board, headers=headers)
 
@@ -93,10 +93,14 @@ if response.status_code == 200:
 
                 precio_fichaje = item.get('amount', item.get('price', 0))
 
-                # Determinación precisa del tipo de operación
-                tipo_final = tipo_evento
+                # Asignación limpia de nombres de tipos en castellano
+                tipo_final = 'Compra'
                 if 'auction' in tipo_evento:
                     tipo_final = 'Subasta'
+                elif 'market' in tipo_evento:
+                    tipo_final = 'Compra'
+                elif 'transfer' in tipo_evento and nombre_comprador == 'Mercado':
+                    tipo_final = 'Venta'
                 elif 'clause' in tipo_evento or 'clausulazo' in tipo_evento:
                     tipo_final = 'Clausulazo'
                 elif nombre_vendedor != 'Mercado' and nombre_comprador != 'Mercado':
