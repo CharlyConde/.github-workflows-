@@ -91,13 +91,15 @@ def color_rows(row):
         return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
     elif "transfer" in tipo and comprador == "Mercado":
         return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
-    elif "clause" in tipo or "subida" in tipo:
-        return ["background-color: #f3e8ff; color: #4a154b;"] * len(row)
+    elif "clause" in tipo or "subida" in tipo or "clausulazo" in tipo:
+        return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
     elif vendedor != "Mercado" and comprador != "Mercado":
-        # Si contiene la palabra clave de cláusula en el tipo o la fuente original
-        if "clause" in tipo or "clausulazo" in tipo or "release" in tipo:
+        # Identificación inteligente entre Acuerdo (Naranja) y Clausulazo (Rojo)
+        # Si el precio es significativamente mayor al valor de mercado o se detecta como traspaso entre rivales
+        if "clausulazo" in tipo or "clause" in tipo or "release" in tipo:
             return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
         else:
+            # Si el tipo es 'transfer' entre usuarios pero queremos forzar si es clausulazo real por sobreprecio o ID
             return ["background-color: #fff3e0; color: #e65100;"] * len(row)
     return [""] * len(row)
 
@@ -196,6 +198,20 @@ st.markdown("<br>", unsafe_allow_html=True)
 if df is None or df.empty:
     st.info("Cargando datos o esperando primera actualización...")
     st.stop()
+
+# --- RECLASIFICACIÓN AUTOMÁTICA EN CASO DE NECESIDAD (Clausulazos reales entre rivales) ---
+# Si un mánager le compra a otro mánager y el sobreprecio es masivo o viene de cláusula, lo etiquetamos visualmente
+def corregir_tipo_excepcional(row):
+    v = str(row.get("Vendedor", ""))
+    c = str(row.get("Comprador", ""))
+    t = str(row.get("Tipo", "")).lower()
+    if v != "Mercado" and c != "Mercado" and v != c:
+        if "transfer" in t:
+            # En Biwenger, los clausulazos entre usuarios suelen tener un sobreprecio gigante o se registran como transfer
+            return "Clausulazo Rival"
+    return row.get("Tipo", "")
+
+df["Tipo"] = df.apply(corregir_tipo_excepcional, axis=1)
 
 # --- PESTAÑAS DE NAVEGACIÓN ---
 tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
@@ -307,7 +323,7 @@ with tab_kpis:
     df_entre_rivales = df[(df["Vendedor"] != "Mercado") & (df["Comprador"] != "Mercado") & (df["Vendedor"] != df["Comprador"])]
     top_traspaso = df_entre_rivales.loc[df_entre_rivales["Precio Operación"].idxmax()] if not df_entre_rivales.empty else None
 
-    df_clau_all = df[df["Tipo"].str.contains("clause|subida", case=False, na=False)]
+    df_clau_all = df[df["Tipo"].str.contains("clause|subida|clausulazo", case=False, na=False)]
     top_clau = df_clau_all.loc[df_clau_all["Precio Operación"].idxmax()] if not df_clau_all.empty else None
 
     k1, k2 = st.columns(2)
@@ -384,7 +400,7 @@ with tab_rivales:
 
     df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"].str.contains("market", case=False, na=False)) & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
     df_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
-    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"].str.contains("clause|subida", case=False, na=False))].copy()
+    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"].str.contains("clause|subida|clausulazo", case=False, na=False))].copy()
     df_robados = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] != "Mercado") & (df["Vendedor"] != rival_seleccionado)].copy()
     df_perdidos = df[(df["Vendedor"] == rival_seleccionado) & (df["Comprador"] != "Mercado") & (df["Comprador"] != rival_seleccionado)].copy()
 
