@@ -32,8 +32,8 @@ if res_players.status_code == 200:
             'precio': p_data.get('price', 0),
         }
 
-# 2. Extraer historial
-url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement&limit=100'
+# 2. Extraer historial incluyendo todos los tipos posibles del tablón
+url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement,clause&limit=100'
 response = requests.get(url_board, headers=headers)
 
 movimientos = []
@@ -41,6 +41,9 @@ movimientos = []
 if response.status_code == 200:
     items = response.json().get('data', [])
     for entry in items:
+        # El tipo principal del evento en el tablón de Biwenger
+        tipo_evento = str(entry.get('type', 'transfer')).lower()
+        
         content = entry.get('content', [])
         if isinstance(content, dict):
             content = [content]
@@ -91,6 +94,18 @@ if response.status_code == 200:
 
                 precio_fichaje = item.get('amount', item.get('price', 0))
 
+                # Determinación precisa del tipo de operación
+                # Si el tipo del evento es clausulazo o contiene la estructura de cláusula, lo etiquetamos como clausulazo
+                tipo_final = tipo_evento
+                if 'clause' in tipo_evento or 'clausulazo' in tipo_evento:
+                    tipo_final = 'Clausulazo'
+                elif nombre_vendedor != 'Mercado' and nombre_comprador != 'Mercado':
+                    # Si intervienen dos mánagers pero el tipo del evento especifica cláusula
+                    if 'clause' in str(item).lower():
+                        tipo_final = 'Clausulazo'
+                    else:
+                        tipo_final = 'Traspaso Rival'
+
                 if precio_fichaje > 0:
                     sobreprecio_euro = (
                         precio_fichaje - valor_mercado
@@ -112,7 +127,7 @@ if response.status_code == 200:
                         'Valor Mercado': valor_mercado,
                         'Sobreprecio (€)': sobreprecio_euro,
                         'Sobreprecio (%)': round(porcentaje_sobreprecio, 1),
-                        'Tipo': entry.get('type', 'transfer'),
+                        'Tipo': tipo_final,
                     })
 
     if movimientos:
