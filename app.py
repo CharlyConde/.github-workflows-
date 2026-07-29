@@ -91,15 +91,14 @@ def color_rows(row):
         return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
     elif "transfer" in tipo and comprador == "Mercado":
         return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
+    elif "auction" in tipo or "subasta" in tipo:
+        return ["background-color: #ede7f6; color: #512da8; font-weight: bold;"] * len(row)
     elif "clause" in tipo or "subida" in tipo or "clausulazo" in tipo:
         return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
     elif vendedor != "Mercado" and comprador != "Mercado":
-        # Identificación inteligente entre Acuerdo (Naranja) y Clausulazo (Rojo)
-        # Si el precio es significativamente mayor al valor de mercado o se detecta como traspaso entre rivales
-        if "clausulazo" in tipo or "clause" in tipo or "release" in tipo:
+        if "clausulazo" in tipo or "clause" in tipo:
             return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
         else:
-            # Si el tipo es 'transfer' entre usuarios pero queremos forzar si es clausulazo real por sobreprecio o ID
             return ["background-color: #fff3e0; color: #e65100;"] * len(row)
     return [""] * len(row)
 
@@ -199,15 +198,17 @@ if df is None or df.empty:
     st.info("Cargando datos o esperando primera actualización...")
     st.stop()
 
-# --- RECLASIFICACIÓN AUTOMÁTICA EN CASO DE NECESIDAD (Clausulazos reales entre rivales) ---
-# Si un mánager le compra a otro mánager y el sobreprecio es masivo o viene de cláusula, lo etiquetamos visualmente
+
+# --- RECLASIFICACIÓN AUTOMÁTICA DE TIPOS ---
 def corregir_tipo_excepcional(row):
     v = str(row.get("Vendedor", ""))
     c = str(row.get("Comprador", ""))
     t = str(row.get("Tipo", "")).lower()
+    
+    if "auction" in t or "subasta" in t:
+        return "Subasta"
     if v != "Mercado" and c != "Mercado" and v != c:
         if "transfer" in t:
-            # En Biwenger, los clausulazos entre usuarios suelen tener un sobreprecio gigante o se registran como transfer
             return "Clausulazo Rival"
     return row.get("Tipo", "")
 
@@ -233,7 +234,7 @@ with tab_inicio:
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
             <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra Mercado</span>
             <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta Mercado</span>
-            <span style="background-color: #f3e8ff; color: #4a154b; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subida Cláusula</span>
+            <span style="background-color: #ede7f6; color: #512da8; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subasta</span>
             <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Acuerdo / Traspaso Rival</span>
             <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo Rival</span>
         </div>
