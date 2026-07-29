@@ -102,36 +102,58 @@ def color_rows(row):
 
 @st.cache_data(ttl=1800)
 def fetch_rss_news():
-    urls = [
-        "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
-        "https://as.com/rss/futbol/primera.xml",
-    ]
-    noticias = []
-    for url in urls:
+    fuentes = {
+        "Marca": "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
+        "AS": "https://as.com/rss/futbol/primera.xml",
+        "Mundo Deportivo": "https://www.mundodeportivo.com/rss",
+        "Sport": "https://www.sport.es/es/rss/futbol/",
+    }
+    
+    noticias_por_fuente = {nombre: [] for nombre in fuentes.keys()}
+
+    for nombre_fuente, url in fuentes.items():
         try:
-            req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            req = Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
             html = urlopen(req).read()
             root = ET.fromstring(html)
-            for item in root.findall("./channel/item"):
-                title = item.find("title").text if item.find("title") is not None else ""
-                link = item.find("link").text if item.find("link") is not None else ""
-                desc = item.find("description").text if item.find("description") is not None else ""
-                pubDate = item.find("pubDate").text if item.find("pubDate") is not None else ""
+            
+            # Búsqueda genérica de items (funciona tanto para canales RSS como Atom)
+            items = root.findall(".//item")
+            if not items:
+                items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+
+            for item in items:
+                title_el = item.find("title") if item.find("title") is not None else item.find("{http://www.w3.org/2005/Atom}title")
+                link_el = item.find("link")
+                desc_el = item.find("description") if item.find("description") is not None else item.find("{http://www.w3.org/2005/Atom}summary")
+                date_el = item.find("pubDate") if item.find("pubDate") is not None else item.find("{http://www.w3.org/2005/Atom}updated")
+
+                title = title_el.text if title_el is not None and title_el.text else ""
+                
+                # Obtener enlace de forma segura (puede ser atributo href o texto)
+                link = ""
+                if link_el is not None:
+                    link = link_el.text if link_el.text else link_el.attrib.get("href", "")
+
+                desc = desc_el.text if desc_el is not None and desc_el.text else ""
+                pubDate = date_el.text if date_el is not None and date_el.text else ""
 
                 desc_clean = desc.replace("<p>", "").replace("</p>", "").replace("<br>", "\n")
                 if "<" in desc_clean and ">" in desc_clean:
                     desc_clean = re.sub("<[^<]+?>", "", desc_clean)
 
                 if title:
-                    noticias.append({
-                        "Título": title,
+                    noticias_por_fuente[nombre_fuente].append({
+                        "Título": title.strip(),
                         "Resumen": desc_clean.strip(),
-                        "Fecha": pubDate,
-                        "Enlace": link,
+                        "Fecha": pubDate.strip(),
+                        "Enlace": link.strip(),
+                        "Fuente": nombre_fuente
                     })
         except Exception:
             continue
-    return noticias
+            
+    return noticias_por_fuente
 
 
 @st.cache_data(ttl=300)
@@ -457,20 +479,44 @@ with tab_rivales:
         st.plotly_chart(fig_compras, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
-# PESTAÑA 5: NOTICIAS LALIGA
+# PESTAÑA 5: NOTICIAS LALIGA (DIVIDIDAS POR DIARIO)
 # ==========================================
 with tab_noticias:
-    st.subheader("📰 Noticias LaLiga & Rumores de Fichajes")
-    noticias = fetch_rss_news()
-    if not noticias:
-        st.warning("No se han podido cargar las noticias en este momento.")
-    else:
-        busqueda = st.text_input("🔍 Buscar jugador o equipo en noticias:", placeholder="Ej: Mbappe, Williams, Betis...")
-        noticias_filtradas = [n for n in noticias if busqueda.lower() in n["Título"].lower() or busqueda.lower() in n["Resumen"].lower()]
-        for noticia in noticias_filtradas[:25]:
-            with st.expander(f"📌 {noticia['Título']}"):
-                if noticia["Fecha"]:
-                    st.caption(f"🗓️ {noticia['Fecha']}")
-                st.write(noticia["Resumen"])
-                if noticia["Enlace"]:
-                    st.markdown(f"[🔗 Leer noticia completa en la web]({noticia['Enlace']})")
+    st.subheader("📰 Actualidad y Rumores de Fichajes por Diario Deportivo")
+    st.caption("Noticias en tiempo real seleccionadas de los principales diarios deportivos de España (Marca, AS, Mundo Deportivo y Sport).")
+    
+    noticias_dict = fetch_rss_news()
+    
+    # Barra de búsqueda global de noticias
+    busqueda_noticia = st.text_input("🔍 Buscar término en todos los diarios:", placeholder="Ej: Mbappé, Bellingham, Lamine, Fichaje...")
+
+    # Creamos sub-pestañas o selectores por cada diario deportivo
+    diarios_disponibles = list(noticias_dict.keys())
+    tabs_diarios = st.tabs([f"📰 {diario}" for diario in diarios_disponibles])
+
+    for i, diario in enumerate(diarios_disponibles):
+        with tabs_diarios[i]:
+            lista_noticias = noticias_dict[diario]
+            
+            # Filtrar por búsqueda si el usuario introdujo texto
+            if busqueda_noticia:
+                lista_noticias = [
+                    n for n in lista_noticias 
+                    if busqueda_noticia.lower() in n["Título"].lower() or busqueda_noticia.lower() in n["Resumen"].lower()
+                ]
+
+            st.markdown(f"### Últimas noticias de **{diario}** ({len(lista_noticias)} artículos)")
+            
+            if not lista_noticias:
+                st.info(f"No se han encontrado noticias en {diario} con el filtro actual.")
+            else:
+                for noticia in lista_noticias[:20]:
+                    with st.expander(f"📌 {noticia['Título']}"):
+                        if noticia["Fecha"]:
+                            st.caption(f"🗓️ {noticia['Fecha']}")
+                        if noticia["Resumen"]:
+                            st.write(noticia["Resumen"])
+                        else:
+                            st.write("Consulta el artículo completo en el enlace oficial del diario.")
+                        if noticia["Enlace"]:
+                            st.markdown(f"[🔗 Leer noticia completa en {diario}]({noticia['Enlace']})")
