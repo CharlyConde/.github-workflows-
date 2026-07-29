@@ -244,7 +244,6 @@ with tab_inicio:
         unsafe_allow_html=True,
     )
 
-    # --- ZONA DE FILTROS INTERACTIVOS POR COLUMNA (TICK MARKS) ---
     with st.expander("🔍 Filtrar columnas (Selecciona los campos que deseas ver)", expanded=False):
         f_col1, f_col2, f_col3 = st.columns(3)
         
@@ -260,7 +259,6 @@ with tab_inicio:
             all_tipos = sorted(df["Tipo"].dropna().unique().tolist())
             sel_tipos = st.multiselect("Filtrar por Tipo:", options=all_tipos, default=all_tipos)
 
-    # Aplicar filtros seleccionados
     df_filtrado = df[
         df["Vendedor"].isin(sel_vendedores) &
         df["Comprador"].isin(sel_compradores) &
@@ -306,7 +304,7 @@ with tab_inicio:
     )
 
 # ==========================================
-# PESTAÑA 2: RÉCORDS & KPIS
+# PESTAÑA 2: RÉCORDS & KPIS (CON TABLAS SEPARADAS RECUPERADAS)
 # ==========================================
 with tab_kpis:
     st.subheader("🏆 Hall of Fame y Datos Destacados de la Liga")
@@ -367,6 +365,22 @@ with tab_kpis:
     fig_caja.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
     fig_caja.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=450, margin=dict(l=20, r=50, t=20, b=20))
     st.plotly_chart(fig_caja, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # --- TABLAS ADICIONALES SEPARADAS RECUPERADAS ---
+    st.divider()
+    col_tab_extra1, col_tab_extra2 = st.columns(2)
+    
+    with col_tab_extra1:
+        st.subheader("📊 Resumen de Gasto Total por Mánager")
+        df_gasto_tabla = df_gastos_tot.sort_values(by="GastoTotal", ascending=False).copy()
+        df_gasto_tabla["GastoTotal"] = df_gasto_tabla["GastoTotal"].apply(fmt)
+        st.dataframe(df_gasto_tabla, hide_index=True, use_container_width=True)
+        
+    with col_tab_extra2:
+        st.subheader("💰 Resumen de Ingresos por Ventas")
+        df_venta_tabla = df_ventas_tot.sort_values(by="IngresoTotal", ascending=False).copy()
+        df_venta_tabla["IngresoTotal"] = df_venta_tabla["IngresoTotal"].apply(fmt)
+        st.dataframe(df_venta_tabla, hide_index=True, use_container_width=True)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
