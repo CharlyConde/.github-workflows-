@@ -28,6 +28,11 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    /* Ocultar barra lateral si no se usa y limpiar elementos */
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+    
     .leyenda-item, div[data-testid="stHorizontalBlock"] button {
         color: #000000 !important;
         font-weight: 600 !important;
@@ -39,8 +44,13 @@ st.markdown(
     .header-container {
         display: flex;
         align-items: center;
-        gap: 20px;
+        justify-content: space-between;
         margin-bottom: 1rem;
+    }
+    .header-title-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 20px;
     }
     .header-title-text {
         font-size: 2.1rem;
@@ -139,22 +149,13 @@ def load_data():
 
 
 # ==========================================
-# BARRA LATERAL (CONTROLES)
-# ==========================================
-with st.sidebar:
-    st.subheader("⚙️ Panel de Control")
-    if st.button("🔄 Forzar Actualización de Datos"):
-        st.cache_data.clear()
-        st.success("¡Caché limpiada con éxito! Recargando...")
-        st.rerun()
-    st.caption("Usa este botón si los datos en GitHub ya se actualizaron pero la app sigue mostrando los antiguos.")
-
-# ==========================================
 # APLICACIÓN PRINCIPAL
 # ==========================================
 df = load_data()
 
-# --- LOCALIZADOR INTELIGENTE DE IMAGEN ---
+# --- HEADER SUPERIOR CON LOGO Y BOTÓN DISCRETO DE RECARGA ---
+col_head_1, col_head_2 = st.columns([8, 2], vertical_alignment="center")
+
 posibles_rutas = ["logo1.png", "assets/logo1.png", "img/logo1.png", "images/logo1.png"]
 logo_encontrado = None
 for ruta in posibles_rutas:
@@ -162,30 +163,36 @@ for ruta in posibles_rutas:
         logo_encontrado = ruta
         break
 
-# --- HEADER CON SOPORTE DE IMAGEN O FALLBACK ---
-if logo_encontrado:
-    with open(logo_encontrado, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-    
-    st.markdown(
-        f"""
-        <div class="header-container">
-            <img src="data:image/png;base64,{encoded_string}" style="width: 85px; height: auto; border-radius: 8px;">
-            <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-else:
-    st.markdown(
-        """
-        <div class="header-container">
-            <div style="font-size: 3.5rem;">🧛‍♂️</div>
-            <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+with col_head_1:
+    if logo_encontrado:
+        with open(logo_encontrado, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode()
+        
+        st.markdown(
+            f"""
+            <div class="header-title-wrapper">
+                <img src="data:image/png;base64,{encoded_string}" style="width: 85px; height: auto; border-radius: 8px;">
+                <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+            <div class="header-title-wrapper">
+                <div style="font-size: 3.5rem;">🧛‍♂️</div>
+                <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+with col_head_2:
+    # Botón discreto arriba a la derecha para vaciar caché
+    if st.button("🔄 Actualizar Datos", use_container_width=True):
+        st.cache_data.clear()
+        st.rerun()
 
 st.markdown("<br>", unsafe_allow_html=True)
 
