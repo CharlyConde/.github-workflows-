@@ -32,8 +32,8 @@ if res_players.status_code == 200:
             'precio': p_data.get('price', 0),
         }
 
-# 2. Extraer historial incluyendo todos los tipos posibles del tablón
-url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement,clause&limit=100'
+# 2. Extraer historial incluyendo 'auction'
+url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement,clause,auction&limit=100'
 response = requests.get(url_board, headers=headers)
 
 movimientos = []
