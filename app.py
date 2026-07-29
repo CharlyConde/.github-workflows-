@@ -28,7 +28,7 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Ocultar barra lateral si no se usa y limpiar elementos */
+    /* Ocultar barra lateral por completo */
     [data-testid="stSidebar"] {
         display: none;
     }
@@ -83,20 +83,19 @@ def fmt_pct(val):
 
 
 def color_rows(row):
-    tipo = row.get("🏷️ Tipo", row.get("Tipo", ""))
-    vendedor = row.get("🏪 Vendedor", row.get("Vendedor", ""))
-    comprador = row.get("🛒 Comprador", row.get("Comprador", ""))
-    precio = row.get("_Precio_Num", 0)
-    vm = row.get("_VM_Num", 0)
+    tipo = str(row.get("🏷️ Tipo", row.get("Tipo", ""))).lower()
+    vendedor = str(row.get("🏪 Vendedor", row.get("Vendedor", "")))
+    comprador = str(row.get("🛒 Comprador", row.get("Comprador", "")))
 
-    if tipo == "market" and vendedor == "Mercado":
+    if "market" in tipo and vendedor == "Mercado":
         return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
-    elif tipo == "transfer" and comprador == "Mercado":
+    elif "transfer" in tipo and comprador == "Mercado":
         return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
-    elif tipo == "clauseIncrement":
+    elif "clause" in tipo or "subida" in tipo:
         return ["background-color: #f3e8ff; color: #4a154b;"] * len(row)
     elif vendedor != "Mercado" and comprador != "Mercado":
-        if precio <= vm or abs(precio - vm) < 1000:
+        # Si contiene la palabra clave de cláusula en el tipo o la fuente original
+        if "clause" in tipo or "clausulazo" in tipo or "release" in tipo:
             return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
         else:
             return ["background-color: #fff3e0; color: #e65100;"] * len(row)
@@ -153,7 +152,7 @@ def load_data():
 # ==========================================
 df = load_data()
 
-# --- HEADER SUPERIOR CON LOGO Y BOTÓN DISCRETO DE RECARGA ---
+# --- HEADER SUPERIOR ---
 col_head_1, col_head_2 = st.columns([8, 2], vertical_alignment="center")
 
 posibles_rutas = ["logo1.png", "assets/logo1.png", "img/logo1.png", "images/logo1.png"]
@@ -167,7 +166,6 @@ with col_head_1:
     if logo_encontrado:
         with open(logo_encontrado, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode()
-        
         st.markdown(
             f"""
             <div class="header-title-wrapper">
@@ -189,7 +187,6 @@ with col_head_1:
         )
 
 with col_head_2:
-    # Botón discreto arriba a la derecha para vaciar caché
     if st.button("🔄 Actualizar Datos", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
@@ -212,25 +209,48 @@ tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
 )
 
 # ==========================================
-# PESTAÑA 1: HISTÓRICO COMPLETO
+# PESTAÑA 1: HISTÓRICO COMPLETO CON FILTROS
 # ==========================================
 with tab_inicio:
-    st.caption(f"Mostrando el histórico de {len(df)} registros procesados.")
-
     st.markdown(
         """
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
             <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra Mercado</span>
             <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta Mercado</span>
             <span style="background-color: #f3e8ff; color: #4a154b; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subida Cláusula</span>
-            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Subasta / Acuerdo Rival</span>
+            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Acuerdo / Traspaso Rival</span>
             <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo Rival</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    df_inicio = df.copy()
+    # --- ZONA DE FILTROS INTERACTIVOS POR COLUMNA (TICK MARKS) ---
+    with st.expander("🔍 Filtrar columnas (Selecciona los campos que deseas ver)", expanded=False):
+        f_col1, f_col2, f_col3 = st.columns(3)
+        
+        with f_col1:
+            all_vendedores = sorted(df["Vendedor"].dropna().unique().tolist())
+            sel_vendedores = st.multiselect("Filtrar por Vendedor:", options=all_vendedores, default=all_vendedores)
+            
+        with f_col2:
+            all_compradores = sorted(df["Comprador"].dropna().unique().tolist())
+            sel_compradores = st.multiselect("Filtrar por Comprador:", options=all_compradores, default=all_compradores)
+            
+        with f_col3:
+            all_tipos = sorted(df["Tipo"].dropna().unique().tolist())
+            sel_tipos = st.multiselect("Filtrar por Tipo:", options=all_tipos, default=all_tipos)
+
+    # Aplicar filtros seleccionados
+    df_filtrado = df[
+        df["Vendedor"].isin(sel_vendedores) &
+        df["Comprador"].isin(sel_compradores) &
+        df["Tipo"].isin(sel_tipos)
+    ].copy()
+
+    st.caption(f"Mostrando {len(df_filtrado)} registros (filtrados de un total de {len(df)}).")
+
+    df_inicio = df_filtrado.copy()
     df_inicio["_Precio_Num"] = df_inicio["Precio Operación"]
     df_inicio["_VM_Num"] = df_inicio["Valor Mercado"]
     df_inicio["Sobreprecio (€)"] = df_inicio["Precio Operación"] - df_inicio["Valor Mercado"]
@@ -263,7 +283,7 @@ with tab_inicio:
         column_order=cols_mostrar,
         hide_index=True,
         use_container_width=True,
-        height=730,
+        height=680,
     )
 
 # ==========================================
@@ -287,7 +307,7 @@ with tab_kpis:
     df_entre_rivales = df[(df["Vendedor"] != "Mercado") & (df["Comprador"] != "Mercado") & (df["Vendedor"] != df["Comprador"])]
     top_traspaso = df_entre_rivales.loc[df_entre_rivales["Precio Operación"].idxmax()] if not df_entre_rivales.empty else None
 
-    df_clau_all = df[df["Tipo"] == "clauseIncrement"]
+    df_clau_all = df[df["Tipo"].str.contains("clause|subida", case=False, na=False)]
     top_clau = df_clau_all.loc[df_clau_all["Precio Operación"].idxmax()] if not df_clau_all.empty else None
 
     k1, k2 = st.columns(2)
@@ -334,7 +354,7 @@ with tab_kpis:
 # ==========================================
 with tab_mercado:
     st.subheader("📊 Análisis Global de Mercado")
-    df_mercado = df[(df["Vendedor"] == "Mercado") & (df["Tipo"] == "market") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
+    df_mercado = df[(df["Vendedor"] == "Mercado") & (df["Tipo"].str.contains("market", case=False, na=False)) & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
     df_mercado["Sobreprecio (€)"] = df_mercado["Precio Operación"] - df_mercado["Valor Mercado"]
     df_mercado["Sobreprecio (%)"] = (df_mercado["Sobreprecio (€)"] / df_mercado["Valor Mercado"]) * 100
 
@@ -362,9 +382,9 @@ with tab_rivales:
 
     rival_seleccionado = st.selectbox("🔍 Selecciona un Manager:", sorted(list(todos_managers)))
 
-    df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"] == "market") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
+    df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"].str.contains("market", case=False, na=False)) & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
     df_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
-    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"] == "clauseIncrement")].copy()
+    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"].str.contains("clause|subida", case=False, na=False))].copy()
     df_robados = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] != "Mercado") & (df["Vendedor"] != rival_seleccionado)].copy()
     df_perdidos = df[(df["Vendedor"] == rival_seleccionado) & (df["Comprador"] != "Mercado") & (df["Comprador"] != rival_seleccionado)].copy()
 
