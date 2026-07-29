@@ -357,44 +357,43 @@ with tab_kpis:
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
     df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
 
+    # --- 1. GRÁFICA DE DINERO EN CAJA ---
     st.subheader("💵 Dinero en Caja Estimado (Base 45M€)")
     fig_caja = px.bar(
         df_caja, x="Caja_Estimada", y="Manager", orientation="h",
         color="Caja_Estimada", color_continuous_scale="Greens", custom_data=["Caja_Fmt"]
     )
     fig_caja.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-    fig_caja.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=450, margin=dict(l=20, r=50, t=20, b=20))
+    fig_caja.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
     st.plotly_chart(fig_caja, use_container_width=True, config=PLOTLY_CONFIG)
 
-    # --- GRÁFICAS DE BARRAS SEPARADAS PARA GASTOS E INGRESOS ---
+    # --- 2. GRÁFICA DE GASTO TOTAL ---
     st.divider()
-    col_chart_1, col_chart_2 = st.columns(2)
+    st.subheader("📊 Gasto Total por Mánager")
+    df_gasto_chart = df_gastos_tot.sort_values(by="GastoTotal", ascending=False).copy()
+    df_gasto_chart["Gasto_Fmt"] = df_gasto_chart["GastoTotal"].apply(fmt)
     
-    with col_chart_1:
-        st.subheader("📊 Gasto Total por Mánager")
-        df_gasto_chart = df_gastos_tot.sort_values(by="GastoTotal", ascending=True).copy()
-        df_gasto_chart["Gasto_Fmt"] = df_gasto_chart["GastoTotal"].apply(fmt)
-        
-        fig_gasto = px.bar(
-            df_gasto_chart, x="GastoTotal", y="Manager", orientation="h",
-            color="GastoTotal", color_continuous_scale="Blues", custom_data=["Gasto_Fmt"]
-        )
-        fig_gasto.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-        fig_gasto.update_layout(yaxis={"title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
-        st.plotly_chart(fig_gasto, use_container_width=True, config=PLOTLY_CONFIG)
-        
-    with col_chart_2:
-        st.subheader("💰 Ingresos por Ventas")
-        df_venta_chart = df_ventas_tot.sort_values(by="IngresoTotal", ascending=True).copy()
-        df_venta_chart["Ingreso_Fmt"] = df_venta_chart["IngresoTotal"].apply(fmt)
-        
-        fig_venta = px.bar(
-            df_venta_chart, x="IngresoTotal", y="Manager", orientation="h",
-            color="IngresoTotal", color_continuous_scale="Oranges", custom_data=["Ingreso_Fmt"]
-        )
-        fig_venta.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-        fig_venta.update_layout(yaxis={"title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
-        st.plotly_chart(fig_venta, use_container_width=True, config=PLOTLY_CONFIG)
+    fig_gasto = px.bar(
+        df_gasto_chart, x="GastoTotal", y="Manager", orientation="h",
+        color="GastoTotal", color_continuous_scale="Blues", custom_data=["Gasto_Fmt"]
+    )
+    fig_gasto.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
+    fig_gasto.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
+    st.plotly_chart(fig_gasto, use_container_width=True, config=PLOTLY_CONFIG)
+
+    # --- 3. GRÁFICA DE INGRESOS POR VENTAS ---
+    st.divider()
+    st.subheader("💰 Ingresos por Ventas")
+    df_venta_chart = df_ventas_tot.sort_values(by="IngresoTotal", ascending=False).copy()
+    df_venta_chart["Ingreso_Fmt"] = df_venta_chart["IngresoTotal"].apply(fmt)
+    
+    fig_venta = px.bar(
+        df_venta_chart, x="IngresoTotal", y="Manager", orientation="h",
+        color="IngresoTotal", color_continuous_scale="Oranges", custom_data=["Ingreso_Fmt"]
+    )
+    fig_venta.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
+    fig_venta.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
+    st.plotly_chart(fig_venta, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
