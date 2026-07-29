@@ -105,8 +105,7 @@ def fetch_rss_news():
     fuentes = {
         "Marca": "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
         "AS": "https://as.com/rss/futbol/primera.xml",
-        "Mundo Deportivo": "https://www.mundodeportivo.com/rss",
-        "Sport": "https://www.sport.es/es/rss/futbol/",
+        "Superdeporte": "https://www.superdeporte.es/rss.html",
     }
     
     noticias_por_fuente = {nombre: [] for nombre in fuentes.keys()}
@@ -117,7 +116,6 @@ def fetch_rss_news():
             html = urlopen(req).read()
             root = ET.fromstring(html)
             
-            # Búsqueda genérica de items (funciona tanto para canales RSS como Atom)
             items = root.findall(".//item")
             if not items:
                 items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
@@ -130,7 +128,6 @@ def fetch_rss_news():
 
                 title = title_el.text if title_el is not None and title_el.text else ""
                 
-                # Obtener enlace de forma segura (puede ser atributo href o texto)
                 link = ""
                 if link_el is not None:
                     link = link_el.text if link_el.text else link_el.attrib.get("href", "")
@@ -479,44 +476,46 @@ with tab_rivales:
         st.plotly_chart(fig_compras, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
-# PESTAÑA 5: NOTICIAS LALIGA (DIVIDIDAS POR DIARIO)
+# PESTAÑA 5: NOTICIAS LALIGA (POR DIARIO)
 # ==========================================
 with tab_noticias:
     st.subheader("📰 Actualidad y Rumores de Fichajes por Diario Deportivo")
-    st.caption("Noticias en tiempo real seleccionadas de los principales diarios deportivos de España (Marca, AS, Mundo Deportivo y Sport).")
+    st.caption("Noticias en tiempo real seleccionadas de los principales medios deportivos activos (Marca, AS y Superdeporte).")
     
     noticias_dict = fetch_rss_news()
     
     # Barra de búsqueda global de noticias
     busqueda_noticia = st.text_input("🔍 Buscar término en todos los diarios:", placeholder="Ej: Mbappé, Bellingham, Lamine, Fichaje...")
 
-    # Creamos sub-pestañas o selectores por cada diario deportivo
-    diarios_disponibles = list(noticias_dict.keys())
-    tabs_diarios = st.tabs([f"📰 {diario}" for diario in diarios_disponibles])
+    diarios_disponibles = [d for d in noticias_dict.keys() if len(noticias_dict[d]) > 0]
+    
+    if not diarios_disponibles:
+        st.warning("No se han podido cargar noticias en este momento. Comprueba tu conexión a internet.")
+    else:
+        tabs_diarios = st.tabs([f"📰 {diario}" for diario in diarios_disponibles])
 
-    for i, diario in enumerate(diarios_disponibles):
-        with tabs_diarios[i]:
-            lista_noticias = noticias_dict[diario]
-            
-            # Filtrar por búsqueda si el usuario introdujo texto
-            if busqueda_noticia:
-                lista_noticias = [
-                    n for n in lista_noticias 
-                    if busqueda_noticia.lower() in n["Título"].lower() or busqueda_noticia.lower() in n["Resumen"].lower()
-                ]
+        for i, diario in enumerate(diarios_disponibles):
+            with tabs_diarios[i]:
+                lista_noticias = noticias_dict[diario]
+                
+                if busqueda_noticia:
+                    lista_noticias = [
+                        n for n in lista_noticias 
+                        if busqueda_noticia.lower() in n["Título"].lower() or busqueda_noticia.lower() in n["Resumen"].lower()
+                    ]
 
-            st.markdown(f"### Últimas noticias de **{diario}** ({len(lista_noticias)} artículos)")
-            
-            if not lista_noticias:
-                st.info(f"No se han encontrado noticias en {diario} con el filtro actual.")
-            else:
-                for noticia in lista_noticias[:20]:
-                    with st.expander(f"📌 {noticia['Título']}"):
-                        if noticia["Fecha"]:
-                            st.caption(f"🗓️ {noticia['Fecha']}")
-                        if noticia["Resumen"]:
-                            st.write(noticia["Resumen"])
-                        else:
-                            st.write("Consulta el artículo completo en el enlace oficial del diario.")
-                        if noticia["Enlace"]:
-                            st.markdown(f"[🔗 Leer noticia completa en {diario}]({noticia['Enlace']})")
+                st.markdown(f"### Últimas noticias de **{diario}** ({len(lista_noticias)} artículos)")
+                
+                if not lista_noticias:
+                    st.info(f"No se han encontrado noticias en {diario} con el filtro actual.")
+                else:
+                    for noticia in lista_noticias[:20]:
+                        with st.expander(f"📌 {noticia['Título']}"):
+                            if noticia["Fecha"]:
+                                st.caption(f"🗓️ {noticia['Fecha']}")
+                            if noticia["Resumen"]:
+                                st.write(noticia["Resumen"])
+                            else:
+                                st.write("Consulta el artículo completo en el enlace oficial del diario.")
+                            if noticia["Enlace"]:
+                                st.markdown(f"[🔗 Leer noticia completa en {diario}]({noticia['Enlace']})")
