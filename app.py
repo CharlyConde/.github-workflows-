@@ -304,7 +304,7 @@ with tab_inicio:
     )
 
 # ==========================================
-# PESTAÑA 2: RÉCORDS & KPIS (CON TABLAS SEPARADAS RECUPERADAS)
+# PESTAÑA 2: RÉCORDS & KPIS
 # ==========================================
 with tab_kpis:
     st.subheader("🏆 Hall of Fame y Datos Destacados de la Liga")
@@ -366,21 +366,35 @@ with tab_kpis:
     fig_caja.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=450, margin=dict(l=20, r=50, t=20, b=20))
     st.plotly_chart(fig_caja, use_container_width=True, config=PLOTLY_CONFIG)
 
-    # --- TABLAS ADICIONALES SEPARADAS RECUPERADAS ---
+    # --- GRÁFICAS DE BARRAS SEPARADAS PARA GASTOS E INGRESOS ---
     st.divider()
-    col_tab_extra1, col_tab_extra2 = st.columns(2)
+    col_chart_1, col_chart_2 = st.columns(2)
     
-    with col_tab_extra1:
-        st.subheader("📊 Resumen de Gasto Total por Mánager")
-        df_gasto_tabla = df_gastos_tot.sort_values(by="GastoTotal", ascending=False).copy()
-        df_gasto_tabla["GastoTotal"] = df_gasto_tabla["GastoTotal"].apply(fmt)
-        st.dataframe(df_gasto_tabla, hide_index=True, use_container_width=True)
+    with col_chart_1:
+        st.subheader("📊 Gasto Total por Mánager")
+        df_gasto_chart = df_gastos_tot.sort_values(by="GastoTotal", ascending=True).copy()
+        df_gasto_chart["Gasto_Fmt"] = df_gasto_chart["GastoTotal"].apply(fmt)
         
-    with col_tab_extra2:
-        st.subheader("💰 Resumen de Ingresos por Ventas")
-        df_venta_tabla = df_ventas_tot.sort_values(by="IngresoTotal", ascending=False).copy()
-        df_venta_tabla["IngresoTotal"] = df_venta_tabla["IngresoTotal"].apply(fmt)
-        st.dataframe(df_venta_tabla, hide_index=True, use_container_width=True)
+        fig_gasto = px.bar(
+            df_gasto_chart, x="GastoTotal", y="Manager", orientation="h",
+            color="GastoTotal", color_continuous_scale="Blues", custom_data=["Gasto_Fmt"]
+        )
+        fig_gasto.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
+        fig_gasto.update_layout(yaxis={"title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
+        st.plotly_chart(fig_gasto, use_container_width=True, config=PLOTLY_CONFIG)
+        
+    with col_chart_2:
+        st.subheader("💰 Ingresos por Ventas")
+        df_venta_chart = df_ventas_tot.sort_values(by="IngresoTotal", ascending=True).copy()
+        df_venta_chart["Ingreso_Fmt"] = df_venta_chart["IngresoTotal"].apply(fmt)
+        
+        fig_venta = px.bar(
+            df_venta_chart, x="IngresoTotal", y="Manager", orientation="h",
+            color="IngresoTotal", color_continuous_scale="Oranges", custom_data=["Ingreso_Fmt"]
+        )
+        fig_venta.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
+        fig_venta.update_layout(yaxis={"title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
+        st.plotly_chart(fig_venta, use_container_width=True, config=PLOTLY_CONFIG)
 
 # ==========================================
 # PESTAÑA 3: MERCADO & SOBREPUJAS
