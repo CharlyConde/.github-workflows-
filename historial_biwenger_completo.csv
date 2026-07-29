@@ -1,6 +1,6 @@
 Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (€),Sobreprecio (%),Tipo
 2026-07-29 08:14,Rubén Sánchez,Atlético Imperial,Mercado,239100,230000,9100,4.0,transfer
-2026-07-29 07:00,Pablo Campos,Racing Puppies Scuderia,U. D. Victormenta,2200000,1000000,1200000,120.0,transfer
+2026-07-29 07:00,Pablo Campos,Racing Puppies Scuderia,U. D. Victormenta,2200000,1000000,1200000,120.0,Clausulazo
 2026-07-29 06:16,Espí,U. D. Victormenta,Mercado,6183800,5940000,243800,4.1,transfer
 2026-07-29 05:04,Benavidez,Los Ronaldos FC,Mercado,145000,150000,-5000,-3.3,transfer
 2026-07-29 05:02,Sangaré,Mercado,HansiWagen,695321,450000,245321,54.5,market
@@ -15,8 +15,8 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-29 05:02,Guevara,Mercado,el Austriaco,160600,160000,600,0.4,market
 2026-07-28 15:34,Osambela,Conde Vampiros F.C.,Mercado,154000,150000,4000,2.7,transfer
 2026-07-28 09:13,Ez Abde,La Real Vinotinto C.F,Mercado,9379300,9110000,269300,3.0,transfer
-2026-07-28 05:17,Yamal,Mercado,Los Ronaldos FC,34992,20100000,-20065008,-99.8,clauseIncrement
-2026-07-28 05:03,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,clauseIncrement
+2026-07-28 05:17,Yamal,Mercado,Los Ronaldos FC,34992,20100000,-20065008,-99.8,Clausulazo
+2026-07-28 05:03,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,Clausulazo
 2026-07-28 05:03,Gijselhart,Mercado,Troll F.C,1692000,1210000,482000,39.8,market
 2026-07-28 05:03,Puga,Mercado,Atlético Imperial,2041530,1590000,451530,28.4,market
 2026-07-28 05:03,Robert Navarro,Mercado,Racing Puppies Scuderia,2000000,1850000,150000,8.1,market
@@ -45,12 +45,12 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-27 05:02,Raba,Mercado,Troll F.C,242000,240000,2000,0.8,market
 2026-07-27 05:02,Oyarzabal,Mercado,Xiks United,13696969,13350000,346969,2.6,market
 2026-07-27 05:02,Kike García,Mercado,Real Bravo C.F,1575560,1530000,45560,3.0,market
-2026-07-26 08:51,Yamal,Mercado,Los Ronaldos FC,34000,20100000,-20066000,-99.8,clauseIncrement
+2026-07-26 08:51,Yamal,Mercado,Los Ronaldos FC,34000,20100000,-20066000,-99.8,Clausulazo
 2026-07-26 08:37,Moi Gómez,elAmerican C.F.,Mercado,659200,630000,29200,4.6,transfer
 2026-07-26 05:36,Cabanzón,La Real Vinotinto C.F,Mercado,161600,170000,-8400,-4.9,transfer
-2026-07-26 05:11,Sotelo,Mercado,Racing Puppies Scuderia,250000,1520000,-1270000,-83.6,clauseIncrement
-2026-07-26 05:11,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,clauseIncrement
-2026-07-26 05:11,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,clauseIncrement
+2026-07-26 05:11,Sotelo,Mercado,Racing Puppies Scuderia,250000,1520000,-1270000,-83.6,Clausulazo
+2026-07-26 05:11,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,Clausulazo
+2026-07-26 05:11,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,Clausulazo
 2026-07-26 05:01,Jorge Salinas,Mercado,Troll F.C,2920000,2290000,630000,27.5,market
 2026-07-26 05:01,Johnny,Mercado,Atlético Imperial,1377820,1200000,177820,14.8,market
 2026-07-26 05:01,Terrats,Mercado,Giorgia Melones,2030000,1490000,540000,36.2,market
@@ -63,9 +63,9 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-26 05:01,Pedrosa,Mercado,HansiWagen,288000,250000,38000,15.2,market
 2026-07-26 05:01,Dumfries,Mercado,American Corruption,6420000,6120000,300000,4.9,market
 2026-07-26 05:01,Eric García,Mercado,Racing Puppies Scuderia,8888463,8570000,318463,3.7,market
-2026-07-25 23:05,Sotelo,Mercado,Racing Puppies Scuderia,50000,1520000,-1470000,-96.7,clauseIncrement
-2026-07-25 23:05,Davinchi,Mercado,Racing Puppies Scuderia,50000,650000,-600000,-92.3,clauseIncrement
-2026-07-25 23:05,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,clauseIncrement
+2026-07-25 23:05,Sotelo,Mercado,Racing Puppies Scuderia,50000,1520000,-1470000,-96.7,Clausulazo
+2026-07-25 23:05,Davinchi,Mercado,Racing Puppies Scuderia,50000,650000,-600000,-92.3,Clausulazo
+2026-07-25 23:05,Pablo Campos,Mercado,Racing Puppies Scuderia,50000,1000000,-950000,-95.0,Clausulazo
 2026-07-25 08:14,Samu Becerra,Atlético Imperial,Mercado,156200,150000,6200,4.1,transfer
 2026-07-25 05:00,Pablo García,Mercado,Atlético Imperial,437280,270000,167280,62.0,market
 2026-07-25 05:00,Guruzeta,Mercado,Real Gardel Sharks,3788999,3270000,518999,15.9,market
@@ -101,9 +101,9 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-24 05:00,Héctor Fort,Mercado,Atlético Imperial,1123040,1070000,53040,5.0,market
 2026-07-24 05:00,Jesús Vázquez,Mercado,Los Ronaldos FC,242900,240000,2900,1.2,market
 2026-07-24 05:00,Alex Sancris,Mercado,La Recineta,153770,150000,3770,2.5,market
-2026-07-24 00:50,Carlos López,Troll F.C,Real Gardel Sharks,165000,150000,15000,10.0,transfer
-2026-07-23 18:04,Gavi,Mercado,HansiWagen,150000,5060000,-4910000,-97.0,clauseIncrement
-2026-07-23 13:09,Yamal,Mercado,Los Ronaldos FC,45000,20100000,-20055000,-99.8,clauseIncrement
+2026-07-24 00:50,Carlos López,Troll F.C,Real Gardel Sharks,165000,150000,15000,10.0,Traspaso Rival
+2026-07-23 18:04,Gavi,Mercado,HansiWagen,150000,5060000,-4910000,-97.0,Clausulazo
+2026-07-23 13:09,Yamal,Mercado,Los Ronaldos FC,45000,20100000,-20055000,-99.8,Clausulazo
 2026-07-23 05:01,Kiko Femenía,Mercado,La Real Vinotinto C.F,777777,630000,147777,23.5,market
 2026-07-23 05:01,Tenaglia,Mercado,Racing Puppies Scuderia,4055000,3220000,835000,25.9,market
 2026-07-23 05:01,Catena,Mercado,Racing Puppies Scuderia,4285000,3360000,925000,27.5,market
@@ -116,7 +116,7 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-23 05:01,Budimir,Mercado,La Recineta,11122580,10360000,762580,7.4,market
 2026-07-23 05:01,Gordon,Mercado,HansiWagen,12745421,10170000,2575421,25.3,market
 2026-07-22 19:52,Thiago Fernández,Los Ronaldos FC,Mercado,1900000,1640000,260000,15.9,transfer
-2026-07-22 10:17,Dani Lorenzo,Racing Puppies Scuderia,La Real Vinotinto C.F,2876750,2680000,196750,7.3,transfer
+2026-07-22 10:17,Dani Lorenzo,Racing Puppies Scuderia,La Real Vinotinto C.F,2876750,2680000,196750,7.3,Clausulazo
 2026-07-22 07:32,Paredes,elAmerican C.F.,Mercado,240000,230000,10000,4.3,transfer
 2026-07-22 07:04,Guilherme Fernandes,Conde Vampiros F.C.,Mercado,157100,150000,7100,4.7,transfer
 2026-07-22 05:01,Deossa,Mercado,American Corruption,225000,220000,5000,2.3,market
@@ -133,7 +133,7 @@ Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (�
 2026-07-22 05:01,Boiro,Mercado,Real Gardel Sharks,266999,240000,26999,11.2,market
 2026-07-22 05:01,Mariano,Mercado,La Recineta,150010,150000,10,0.0,market
 2026-07-22 05:01,Iturbe,Mercado,American Corruption,151000,150000,1000,0.7,market
-2026-07-21 22:31,Arda Güler,Los Ronaldos FC,Atlético Imperial,8069104,6970000,1099104,15.8,transfer
+2026-07-21 22:31,Arda Güler,Los Ronaldos FC,Atlético Imperial,8069104,6970000,1099104,15.8,Traspaso Rival
 2026-07-21 05:00,Aubameyang,Mercado,Conde Vampiros F.C.,6275000,5010000,1265000,25.2,market
 2026-07-21 05:00,Guliashvili,Mercado,Conde Vampiros F.C.,650000,420000,230000,54.8,market
 2026-07-21 05:00,Facundo González,Mercado,Giorgia Melones,1600000,1380000,220000,15.9,market
