@@ -87,19 +87,16 @@ def color_rows(row):
     vendedor = str(row.get("🏪 Vendedor", row.get("Vendedor", "")))
     comprador = str(row.get("🛒 Comprador", row.get("Comprador", "")))
 
-    if "market" in tipo and vendedor == "Mercado":
+    if "compra" in tipo or ("market" in tipo and vendedor == "Mercado"):
         return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
-    elif "transfer" in tipo and comprador == "Mercado":
+    elif "venta" in tipo or ("transfer" in tipo and comprador == "Mercado"):
         return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
-    elif "auction" in tipo or "subasta" in tipo:
+    elif "subasta" in tipo or "auction" in tipo:
         return ["background-color: #ede7f6; color: #512da8; font-weight: bold;"] * len(row)
-    elif "clause" in tipo or "subida" in tipo or "clausulazo" in tipo:
+    elif "clausulazo" in tipo or "clause" in tipo:
         return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
-    elif vendedor != "Mercado" and comprador != "Mercado":
-        if "clausulazo" in tipo or "clause" in tipo:
-            return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
-        else:
-            return ["background-color: #fff3e0; color: #e65100;"] * len(row)
+    elif "traspaso" in tipo or (vendedor != "Mercado" and comprador != "Mercado"):
+        return ["background-color: #fff3e0; color: #e65100;"] * len(row)
     return [""] * len(row)
 
 
@@ -199,20 +196,25 @@ if df is None or df.empty:
     st.stop()
 
 
-# --- RECLASIFICACIÓN AUTOMÁTICA DE TIPOS ---
-def corregir_tipo_excepcional(row):
+# --- LIMPIEZA Y NORMALIZACIÓN DE TIPOS ---
+def limpiar_tipos(row):
     v = str(row.get("Vendedor", ""))
     c = str(row.get("Comprador", ""))
     t = str(row.get("Tipo", "")).lower()
     
     if "auction" in t or "subasta" in t:
         return "Subasta"
-    if v != "Mercado" and c != "Mercado" and v != c:
-        if "transfer" in t:
-            return "Clausulazo Rival"
-    return row.get("Tipo", "")
+    elif "market" in t or "compra" in t:
+        return "Compra"
+    elif ("transfer" in t and c == "Mercado") or "venta" in t:
+        return "Venta"
+    elif "clause" in t or "clausulazo" in t:
+        return "Clausulazo"
+    elif v != "Mercado" and c != "Mercado" and v != c:
+        return "Traspaso Rival"
+    return row.get("Tipo", "Compra")
 
-df["Tipo"] = df.apply(corregir_tipo_excepcional, axis=1)
+df["Tipo"] = df.apply(limpiar_tipos, axis=1)
 
 # --- PESTAÑAS DE NAVEGACIÓN ---
 tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
@@ -232,11 +234,11 @@ with tab_inicio:
     st.markdown(
         """
         <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
-            <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra Mercado</span>
-            <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta Mercado</span>
+            <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra</span>
+            <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta</span>
             <span style="background-color: #ede7f6; color: #512da8; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subasta</span>
-            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Acuerdo / Traspaso Rival</span>
-            <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo Rival</span>
+            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Traspaso Rival</span>
+            <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -311,7 +313,7 @@ with tab_kpis:
 
     df_pujas_mercado = df[
         (df["Vendedor"] == "Mercado")
-        & (df["Tipo"] == "market")
+        & (df["Tipo"] == "Compra")
         & (df["Precio Operación"] >= df["Valor Mercado"])
     ].copy()
 
@@ -324,7 +326,7 @@ with tab_kpis:
     df_entre_rivales = df[(df["Vendedor"] != "Mercado") & (df["Comprador"] != "Mercado") & (df["Vendedor"] != df["Comprador"])]
     top_traspaso = df_entre_rivales.loc[df_entre_rivales["Precio Operación"].idxmax()] if not df_entre_rivales.empty else None
 
-    df_clau_all = df[df["Tipo"].str.contains("clause|subida|clausulazo", case=False, na=False)]
+    df_clau_all = df[df["Tipo"] == "Clausulazo"]
     top_clau = df_clau_all.loc[df_clau_all["Precio Operación"].idxmax()] if not df_clau_all.empty else None
 
     k1, k2 = st.columns(2)
@@ -342,7 +344,7 @@ with tab_kpis:
         k3.metric("⚡ Mayor Traspaso", "Sin datos", "Sin registros")
 
     if top_clau is not None:
-        k4.metric("🔒 Mayor Subida Cláusula", fmt(top_clau["Precio Operación"]), f"{top_clau['Jugador']}")
+        k4.metric("🔒 Mayor Clausulazo", fmt(top_clau["Precio Operación"]), f"{top_clau['Jugador']}")
 
     st.divider()
 
@@ -371,7 +373,7 @@ with tab_kpis:
 # ==========================================
 with tab_mercado:
     st.subheader("📊 Análisis Global de Mercado")
-    df_mercado = df[(df["Vendedor"] == "Mercado") & (df["Tipo"].str.contains("market", case=False, na=False)) & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
+    df_mercado = df[(df["Vendedor"] == "Mercado") & (df["Tipo"] == "Compra") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
     df_mercado["Sobreprecio (€)"] = df_mercado["Precio Operación"] - df_mercado["Valor Mercado"]
     df_mercado["Sobreprecio (%)"] = (df_mercado["Sobreprecio (€)"] / df_mercado["Valor Mercado"]) * 100
 
@@ -399,9 +401,9 @@ with tab_rivales:
 
     rival_seleccionado = st.selectbox("🔍 Selecciona un Manager:", sorted(list(todos_managers)))
 
-    df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"].str.contains("market", case=False, na=False)) & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
+    df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"] == "Compra") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
     df_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
-    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"].str.contains("clause|subida|clausulazo", case=False, na=False))].copy()
+    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"] == "Clausulazo")].copy()
     df_robados = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] != "Mercado") & (df["Vendedor"] != rival_seleccionado)].copy()
     df_perdidos = df[(df["Vendedor"] == rival_seleccionado) & (df["Comprador"] != "Mercado") & (df["Comprador"] != rival_seleccionado)].copy()
 
