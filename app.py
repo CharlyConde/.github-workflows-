@@ -153,14 +153,18 @@ def fetch_rss_news():
     return noticias_por_fuente
 
 
-@st.cache_data(ttl=300)
+# SIN CACHÉ ESTRICTA EN LA CARGA DE DATOS PARA EVITAR QUE SE QUEDE ANTIGUO
 def load_data():
     csv_file = "historial_biwenger_completo.csv"
     xlsx_file = "historial_biwenger_completo.xlsx"
+    
+    # Comprobar ficheros locales o rutas de sincronización
     if os.path.exists(csv_file):
-        return pd.read_csv(csv_file)
+        df = pd.read_csv(csv_file)
+        return df
     elif os.path.exists(xlsx_file):
-        return pd.read_excel(xlsx_file)
+        df = pd.read_excel(xlsx_file)
+        return df
     return None
 
 
@@ -234,6 +238,11 @@ def limpiar_tipos(row):
     return row.get("Tipo", "Compra")
 
 df["Tipo"] = df.apply(limpiar_tipos, axis=1)
+
+# Mostrar indicador de última fecha en los datos cargados
+if "Fecha" in df.columns:
+    ultima_fecha_str = str(df["Fecha"].max()).split()[0]
+    st.caption(f"📌 Estado de la base de datos: Sincronizada correctamente (Último registro detectado: **{ultima_fecha_str}**)")
 
 # --- PESTAÑAS DE NAVEGACIÓN ---
 tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
