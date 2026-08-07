@@ -3,6 +3,7 @@ import base64
 import re
 import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
+import urllib.request
 
 import pandas as pd
 import plotly.express as px
@@ -21,6 +22,13 @@ st.set_page_config(
     page_icon="🧛‍♂️",
     layout="wide",
 )
+
+# ==========================================
+# CONFIGURACIÓN Y ENLACE DE GOOGLE DRIVE
+# ==========================================
+# Pega aquí el enlace compartido de Google Drive o el ID del archivo
+# Ejemplo: "12345abcdefg... o https://drive.google.com/file/d/TU_ID/view?usp=sharing"
+GOOGLE_DRIVE_URL = "https://drive.google.com/file/d/1l276NW_Zw783y-3ol2B5Bd_4sU4014Px/view?usp=drive_link" 
 
 # ==========================================
 # CONFIGURACIÓN Y ESTILOS CSS
@@ -153,9 +161,34 @@ def fetch_rss_news():
     return noticias_por_fuente
 
 
-# LECTURA DIRECTA DEL ARCHIVO FIJO (SIN CACHÉ PARA FORZAR LECTURA FRESCA)
+# ==========================================
+# DESCARGA DESDE GOOGLE DRIVE (PÚBLICO)
+# ==========================================
+def descargar_desde_google_drive_publico():
+    csv_file = "historial_biwenger_completo.csv"
+    if not GOOGLE_DRIVE_URL:
+        return
+        
+    try:
+        # Extraer el ID del archivo desde el enlace de Google Drive
+        match = re.search(r'/d/([a-zA-Z0-9_-]+)', GOOGLE_DRIVE_URL)
+        if match:
+            file_id = match.group(1)
+            download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            
+            headers = {"User-Agent": "Mozilla/5.0"}
+            req = Request(download_url, headers=headers)
+            with urlopen(req) as response, open(csv_file, 'wb') as out_file:
+                out_file.write(response.read())
+    except Exception:
+        pass
+
+
 def load_data():
     csv_file = "historial_biwenger_completo.csv"
+    # Intentar descargar la versión más fresca desde Google Drive
+    descargar_desde_google_drive_publico()
+    
     if os.path.exists(csv_file):
         try:
             df = pd.read_csv(csv_file)
@@ -213,7 +246,7 @@ with col_head_2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 if df is None or df.empty:
-    st.warning("No se encuentra el archivo 'historial_biwenger_completo.csv' en el repositorio.")
+    st.warning("No se encuentra el archivo 'historial_biwenger_completo.csv' ni se pudo descargar de Google Drive.")
     st.stop()
 
 
@@ -237,11 +270,10 @@ def limpiar_tipos(row):
 
 df["Tipo"] = df.apply(limpiar_tipos, axis=1)
 
-# Mostrar indicador de última fecha en los datos cargados
 if "Fecha" in df.columns:
     df["Fecha_temp"] = pd.to_datetime(df["Fecha"], errors="coerce")
     ultima_fecha_str = str(df["Fecha_temp"].max()).split()[0] if not df["Fecha_temp"].isna().all() else "Desconocida"
-    st.caption(f"📌 Leyendo archivo: **{filename}** (Último registro detectado: **{ultima_fecha_str}**)")
+    st.caption(f"📌 Archivo sincronizado: **{filename}** (Último registro detectado: **{ultima_fecha_str}**)")
 
 # --- PESTAÑAS DE NAVEGACIÓN ---
 tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
