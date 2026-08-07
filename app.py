@@ -3,7 +3,6 @@ import base64
 import re
 import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
-import glob
 
 import pandas as pd
 import plotly.express as px
@@ -154,21 +153,17 @@ def fetch_rss_news():
     return noticias_por_fuente
 
 
-# CARGA AUTOMÁTICA DEL ARCHIVO MÁS RECIENTE (CSV O XLSX)
-@st.cache_data(ttl=60)
+# LECTURA DIRECTA DEL ARCHIVO FIJO (SIN CACHÉ PARA FORZAR LECTURA FRESCA)
 def load_data():
-    files = glob.glob('*.csv') + glob.glob('*.xlsx')
-    if not files:
-        return None, None
-    latest_file = max(files, key=os.path.getmtime)
-    try:
-        if latest_file.endswith('.csv'):
-            df = pd.read_csv(latest_file)
-        else:
-            df = pd.read_excel(latest_file)
-        return df, latest_file
-    except Exception:
-        return None, None
+    csv_file = "historial_biwenger_completo.csv"
+    if os.path.exists(csv_file):
+        try:
+            df = pd.read_csv(csv_file)
+            return df, csv_file
+        except Exception as e:
+            st.error(f"Error al leer el archivo CSV: {e}")
+            return None, None
+    return None, None
 
 
 # ==========================================
@@ -218,7 +213,7 @@ with col_head_2:
 st.markdown("<br>", unsafe_allow_html=True)
 
 if df is None or df.empty:
-    st.warning("No se encuentra ningún archivo de datos en la carpeta. Sube tu exportación de Biwenger (.csv o .xlsx).")
+    st.warning("No se encuentra el archivo 'historial_biwenger_completo.csv' en el repositorio.")
     st.stop()
 
 
@@ -242,7 +237,7 @@ def limpiar_tipos(row):
 
 df["Tipo"] = df.apply(limpiar_tipos, axis=1)
 
-# Mostrar indicador de archivo y última fecha
+# Mostrar indicador de última fecha en los datos cargados
 if "Fecha" in df.columns:
     df["Fecha_temp"] = pd.to_datetime(df["Fecha"], errors="coerce")
     ultima_fecha_str = str(df["Fecha_temp"].max()).split()[0] if not df["Fecha_temp"].isna().all() else "Desconocida"
