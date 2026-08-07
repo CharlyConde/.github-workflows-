@@ -1,530 +1,70 @@
-import os
-import base64
-import re
-import xml.etree.ElementTree as ET
-from urllib.request import Request, urlopen
-
-import pandas as pd
-import plotly.express as px
 import streamlit as st
+import pandas as pd
+import glob
+import os
 
-try:
-    from PIL import Image
-except ImportError:
-    Image = None
+# --- Configuración de Página ---
+st.set_page_config(page_title="Gestor de Operaciones Biwenger", layout="wide")
 
-# ==========================================
-# CONFIGURACIÓN DE PÁGINA
-# ==========================================
-st.set_page_config(
-    page_title="Conde News | Biwenger Panel",
-    page_icon="🧛‍♂️",
-    layout="wide",
-)
-
-# ==========================================
-# CONFIGURACIÓN Y ESTILOS CSS
-# ==========================================
-st.markdown(
-    """
-    <style>
-    /* Ocultar barra lateral por completo */
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-    
-    .leyenda-item, div[data-testid="stHorizontalBlock"] button {
-        color: #000000 !important;
-        font-weight: 600 !important;
-        opacity: 1 !important;
-        filter: none !important;
-        border: none !important;
-        box-shadow: none !important;
-    }
-    .header-container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-    .header-title-wrapper {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
-    .header-title-text {
-        font-size: 2.1rem;
-        font-weight: 800;
-        margin: 0;
-        line-height: 1.25;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-PLOTLY_CONFIG = {"displayModeBar": False}
-
-
-# ==========================================
-# FUNCIONES AUXILIARES
-# ==========================================
-def fmt(val):
-    if pd.isna(val) or val is None:
-        return "-"
-    return f"{val:,.1f} €".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
-def fmt_pct(val):
-    if pd.isna(val) or val is None:
-        return "-"
-    signo = "+" if val > 0 else ""
-    return f"{signo}{val:,.1f}%".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
-def color_rows(row):
-    tipo = str(row.get("🏷️ Tipo", row.get("Tipo", ""))).lower()
-    vendedor = str(row.get("🏪 Vendedor", row.get("Vendedor", "")))
-    comprador = str(row.get("🛒 Comprador", row.get("Comprador", "")))
-
-    if "compra" in tipo or ("market" in tipo and vendedor == "Mercado"):
-        return ["background-color: #e6f0fa; color: #0f3460;"] * len(row)
-    elif "venta" in tipo or ("transfer" in tipo and comprador == "Mercado"):
-        return ["background-color: #e6ffe6; color: #1b5e20;"] * len(row)
-    elif "subasta" in tipo or "auction" in tipo:
-        return ["background-color: #ede7f6; color: #512da8; font-weight: bold;"] * len(row)
-    elif "clausulazo" in tipo or "clause" in tipo:
-        return ["background-color: #ffebee; color: #b71c1c; font-weight: bold;"] * len(row)
-    elif "traspaso" in tipo or (vendedor != "Mercado" and comprador != "Mercado"):
-        return ["background-color: #fff3e0; color: #e65100;"] * len(row)
-    return [""] * len(row)
-
-
-@st.cache_data(ttl=1800)
-def fetch_rss_news():
-    fuentes = {
-        "Marca": "https://e00-marca.uecdn.es/rss/futbol/primera-division.xml",
-        "AS": "https://as.com/rss/futbol/primera.xml",
-        "Superdeporte": "https://www.superdeporte.es/rss.html",
-    }
-    
-    noticias_por_fuente = {nombre: [] for nombre in fuentes.keys()}
-
-    for nombre_fuente, url in fuentes.items():
-        try:
-            req = Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
-            html = urlopen(req).read()
-            root = ET.fromstring(html)
-            
-            items = root.findall(".//item")
-            if not items:
-                items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
-
-            for item in items:
-                title_el = item.find("title") if item.find("title") is not None else item.find("{http://www.w3.org/2005/Atom}title")
-                link_el = item.find("link")
-                desc_el = item.find("description") if item.find("description") is not None else item.find("{http://www.w3.org/2005/Atom}summary")
-                date_el = item.find("pubDate") if item.find("pubDate") is not None else item.find("{http://www.w3.org/2005/Atom}updated")
-
-                title = title_el.text if title_el is not None and title_el.text else ""
-                
-                link = ""
-                if link_el is not None:
-                    link = link_el.text if link_el.text else link_el.attrib.get("href", "")
-
-                desc = desc_el.text if desc_el is not None and desc_el.text else ""
-                pubDate = date_el.text if date_el is not None and date_el.text else ""
-
-                desc_clean = desc.replace("<p>", "").replace("</p>", "").replace("<br>", "\n")
-                if "<" in desc_clean and ">" in desc_clean:
-                    desc_clean = re.sub("<[^<]+?>", "", desc_clean)
-
-                if title:
-                    noticias_por_fuente[nombre_fuente].append({
-                        "Título": title.strip(),
-                        "Resumen": desc_clean.strip(),
-                        "Fecha": pubDate.strip(),
-                        "Enlace": link.strip(),
-                        "Fuente": nombre_fuente
-                    })
-        except Exception:
-            continue
-            
-    return noticias_por_fuente
-
-
-# SIN CACHÉ ESTRICTA EN LA CARGA DE DATOS PARA EVITAR QUE SE QUEDE ANTIGUO
+# --- Función de Carga de Datos Automática ---
+@st.cache_data(ttl=60)
 def load_data():
-    csv_file = "historial_biwenger_completo.csv"
-    xlsx_file = "historial_biwenger_completo.xlsx"
+    # Busca todos los CSV y XLSX en el directorio
+    files = glob.glob('*.csv') + glob.glob('*.xlsx')
     
-    # Comprobar ficheros locales o rutas de sincronización
-    if os.path.exists(csv_file):
-        df = pd.read_csv(csv_file)
-        return df
-    elif os.path.exists(xlsx_file):
-        df = pd.read_excel(xlsx_file)
-        return df
-    return None
-
-
-# ==========================================
-# APLICACIÓN PRINCIPAL
-# ==========================================
-df = load_data()
-
-# --- HEADER SUPERIOR ---
-col_head_1, col_head_2 = st.columns([8, 2], vertical_alignment="center")
-
-posibles_rutas = ["logo1.png", "assets/logo1.png", "img/logo1.png", "images/logo1.png"]
-logo_encontrado = None
-for ruta in posibles_rutas:
-    if os.path.exists(ruta):
-        logo_encontrado = ruta
-        break
-
-with col_head_1:
-    if logo_encontrado:
-        with open(logo_encontrado, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read()).decode()
-        st.markdown(
-            f"""
-            <div class="header-title-wrapper">
-                <img src="data:image/png;base64,{encoded_string}" style="width: 85px; height: auto; border-radius: 8px;">
-                <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            """
-            <div class="header-title-wrapper">
-                <div style="font-size: 3.5rem;">🧛‍♂️</div>
-                <div class="header-title-text">¡Bienvenidos a la mejor liga del mundo! Y al mejor análisis del mundo, ¡Conde News!</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-with col_head_2:
-    if st.button("🔄 Actualizar Datos", use_container_width=True):
-        st.cache_data.clear()
-        st.rerun()
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-if df is None or df.empty:
-    st.info("Cargando datos o esperando primera actualización...")
-    st.stop()
-
-
-# --- LIMPIEZA Y NORMALIZACIÓN DE TIPOS ---
-def limpiar_tipos(row):
-    v = str(row.get("Vendedor", ""))
-    c = str(row.get("Comprador", ""))
-    t = str(row.get("Tipo", "")).lower()
+    if not files:
+        return None, None
     
-    if "auction" in t or "subasta" in t:
-        return "Subasta"
-    elif "market" in t or "compra" in t:
-        return "Compra"
-    elif ("transfer" in t and c == "Mercado") or "venta" in t:
-        return "Venta"
-    elif "clause" in t or "clausulazo" in t:
-        return "Clausulazo"
-    elif v != "Mercado" and c != "Mercado" and v != c:
-        return "Traspaso Rival"
-    return row.get("Tipo", "Compra")
+    # Selecciona el archivo con la fecha de modificación más reciente
+    latest_file = max(files, key=os.path.getmtime)
+    
+    try:
+        if latest_file.endswith('.csv'):
+            df = pd.read_csv(latest_file)
+        else:
+            df = pd.read_excel(latest_file)
+        return df, latest_file
+    except Exception as e:
+        st.error(f"Error al leer el archivo: {e}")
+        return None, None
 
-df["Tipo"] = df.apply(limpiar_tipos, axis=1)
+# --- Interfaz de Usuario ---
+st.title("📊 Historial de Operaciones Biwenger")
 
-# Mostrar indicador de última fecha en los datos cargados
-if "Fecha" in df.columns:
-    ultima_fecha_str = str(df["Fecha"].max()).split()[0]
-    st.caption(f"📌 Estado de la base de datos: Sincronizada correctamente (Último registro detectado: **{ultima_fecha_str}**)")
+# Botón para refrescar
+if st.button("🔄 Actualizar Datos"):
+    st.cache_data.clear()
+    st.rerun()
 
-# --- PESTAÑAS DE NAVEGACIÓN ---
-tab_inicio, tab_kpis, tab_mercado, tab_rivales, tab_noticias = st.tabs(
-    [
-        "📋 Histórico Completo",
-        "🏆 Récords & KPIs",
-        "📊 Mercado & Pujas",
-        "👥 Rivales & Cláusulas",
-        "📰 Noticias LaLiga",
-    ]
-)
+# Carga de datos
+df, filename = load_data()
 
-# ==========================================
-# PESTAÑA 1: HISTÓRICO COMPLETO CON FILTROS
-# ==========================================
-with tab_inicio:
-    st.markdown(
-        """
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; font-size: 0.85rem;">
-            <span style="background-color: #e6f0fa; color: #0f3460; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟦 Compra</span>
-            <span style="background-color: #e6ffe6; color: #1b5e20; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟩 Venta</span>
-            <span style="background-color: #ede7f6; color: #512da8; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟪 Subasta</span>
-            <span style="background-color: #fff3e0; color: #e65100; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟧 Traspaso Rival</span>
-            <span style="background-color: #ffebee; color: #b71c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold;">🟥 Clausulazo</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+if df is None:
+    st.warning("No se encontraron archivos de datos. Asegúrate de haber subido tu exportación de Biwenger (.csv o .xlsx) a la carpeta de la app.")
+else:
+    st.caption(f"📌 Estás viendo los datos del archivo más reciente: **{filename}**")
+    
+    # Mostrar datos
+    st.dataframe(df, use_container_width=True)
 
-    with st.expander("🔍 Filtrar columnas (Selecciona los campos que deseas ver)", expanded=False):
-        f_col1, f_col2, f_col3 = st.columns(3)
+    # --- Análisis básico ---
+    st.subheader("Resumen de hoy")
+    
+    # Intentamos detectar la columna de fecha automáticamente
+    fecha_col = [col for col in df.columns if 'Fecha' in col]
+    
+    if fecha_col:
+        col_name = fecha_col[0]
+        df[col_name] = pd.to_datetime(df[col_name])
         
-        with f_col1:
-            all_vendedores = sorted(df["Vendedor"].dropna().unique().tolist())
-            sel_vendedores = st.multiselect("Filtrar por Vendedor:", options=all_vendedores, default=all_vendedores)
-            
-        with f_col2:
-            all_compradores = sorted(df["Comprador"].dropna().unique().tolist())
-            sel_compradores = st.multiselect("Filtrar por Comprador:", options=all_compradores, default=all_compradores)
-            
-        with f_col3:
-            all_tipos = sorted(df["Tipo"].dropna().unique().tolist())
-            sel_tipos = st.multiselect("Filtrar por Tipo:", options=all_tipos, default=all_tipos)
-
-    df_filtrado = df[
-        df["Vendedor"].isin(sel_vendedores) &
-        df["Comprador"].isin(sel_compradores) &
-        df["Tipo"].isin(sel_tipos)
-    ].copy()
-
-    st.caption(f"Mostrando {len(df_filtrado)} registros (filtrados de un total de {len(df)}).")
-
-    df_inicio = df_filtrado.copy()
-    df_inicio["_Precio_Num"] = df_inicio["Precio Operación"]
-    df_inicio["_VM_Num"] = df_inicio["Valor Mercado"]
-    df_inicio["Sobreprecio (€)"] = df_inicio["Precio Operación"] - df_inicio["Valor Mercado"]
-    df_inicio["Sobreprecio (%)"] = (df_inicio["Sobreprecio (€)"] / df_inicio["Valor Mercado"].replace(0, 1)) * 100
-
-    df_inicio_formatted = df_inicio.copy()
-    df_inicio_formatted["Precio Operación"] = df_inicio_formatted["Precio Operación"].apply(fmt)
-    df_inicio_formatted["Valor Mercado"] = df_inicio_formatted["Valor Mercado"].apply(fmt)
-    df_inicio_formatted["Sobreprecio (€)"] = df_inicio_formatted["Sobreprecio (€)"].apply(fmt)
-    df_inicio_formatted["Sobreprecio (%)"] = df_inicio_formatted["Sobreprecio (%)"].apply(fmt_pct)
-
-    column_map = {
-        "Fecha": "📅 Fecha",
-        "Jugador": "👤 Jugador",
-        "Vendedor": "🏪 Vendedor",
-        "Comprador": "🛒 Comprador",
-        "Precio Operación": "💰 Precio Operación",
-        "Valor Mercado": "📈 Valor Mercado",
-        "Sobreprecio (€)": "➕ Sobreprecio (€)",
-        "Sobreprecio (%)": "📊 Sobreprecio (%)",
-        "Tipo": "🏷️ Tipo",
-    }
-
-    df_inicio_formatted = df_inicio_formatted.rename(columns=column_map)
-    cols_mostrar = list(column_map.values())
-    df_styled = df_inicio_formatted[cols_mostrar + ["_Precio_Num", "_VM_Num"]].style.apply(color_rows, axis=1)
-
-    st.dataframe(
-        df_styled,
-        column_order=cols_mostrar,
-        hide_index=True,
-        use_container_width=True,
-        height=680,
-    )
-
-# ==========================================
-# PESTAÑA 2: RÉCORDS & KPIS
-# ==========================================
-with tab_kpis:
-    st.subheader("🏆 Hall of Fame y Datos Destacados de la Liga")
-
-    df_pujas_mercado = df[
-        (df["Vendedor"] == "Mercado")
-        & (df["Tipo"] == "Compra")
-        & (df["Precio Operación"] >= df["Valor Mercado"])
-    ].copy()
-
-    df_pujas_mercado["Sobreprecio (€)"] = df_pujas_mercado["Precio Operación"] - df_pujas_mercado["Valor Mercado"]
-    df_pujas_mercado["Sobreprecio (%)"] = (df_pujas_mercado["Sobreprecio (€)"] / df_pujas_mercado["Valor Mercado"]) * 100
-
-    top_puja = df_pujas_mercado.loc[df_pujas_mercado["Precio Operación"].idxmax()] if not df_pujas_mercado.empty else None
-    top_locura_pct = df_pujas_mercado.loc[df_pujas_mercado["Sobreprecio (%)"].idxmax()] if not df_pujas_mercado.empty else None
-
-    df_entre_rivales = df[(df["Vendedor"] != "Mercado") & (df["Comprador"] != "Mercado") & (df["Vendedor"] != df["Comprador"])]
-    top_traspaso = df_entre_rivales.loc[df_entre_rivales["Precio Operación"].idxmax()] if not df_entre_rivales.empty else None
-
-    df_clau_all = df[df["Tipo"] == "Clausulazo"]
-    top_clau = df_clau_all.loc[df_clau_all["Precio Operación"].idxmax()] if not df_clau_all.empty else None
-
-    k1, k2 = st.columns(2)
-    if top_puja is not None:
-        k1.metric("🎯 Mayor Puja Mercado", fmt(top_puja["Precio Operación"]), f"{top_puja['Jugador']}")
-    if top_locura_pct is not None:
-        k2.metric("🚀 Mayor Sobrepuja (%)", fmt_pct(top_locura_pct["Sobreprecio (%)"]), f"{top_locura_pct['Jugador']}")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    k3, k4 = st.columns(2)
-    if top_traspaso is not None:
-        k3.metric("⚡ Mayor Traspaso", fmt(top_traspaso["Precio Operación"]), f"{top_traspaso['Jugador']}")
+        # Filtrar por el día de hoy (7 de agosto de 2026)
+        hoy = pd.to_datetime('2026-08-07')
+        df_hoy = df[df[col_name].dt.date == hoy.date()]
+        
+        if not df_hoy.empty:
+            st.write(f"Se han encontrado {len(df_hoy)} operaciones hoy:")
+            st.table(df_hoy)
+        else:
+            st.info("No hay operaciones registradas para el día de hoy.")
     else:
-        k3.metric("⚡ Mayor Traspaso", "Sin datos", "Sin registros")
-
-    if top_clau is not None:
-        k4.metric("🔒 Mayor Clausulazo", fmt(top_clau["Precio Operación"]), f"{top_clau['Jugador']}")
-
-    st.divider()
-
-    PRESUPUESTO_INICIAL = 45_000_000
-    df_gastos_tot = df[df["Comprador"] != "Mercado"].groupby("Comprador")["Precio Operación"].sum().reset_index()
-    df_gastos_tot.columns = ["Manager", "GastoTotal"]
-    df_ventas_tot = df[df["Vendedor"] != "Mercado"].groupby("Vendedor")["Precio Operación"].sum().reset_index()
-    df_ventas_tot.columns = ["Manager", "IngresoTotal"]
-
-    df_caja = pd.merge(df_gastos_tot, df_ventas_tot, on="Manager", how="outer").fillna(0)
-    df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
-    df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
-    df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
-
-    # --- 1. GRÁFICA DE DINERO EN CAJA ---
-    st.subheader("💵 Dinero en Caja Estimado (Base 45M€)")
-    fig_caja = px.bar(
-        df_caja, x="Caja_Estimada", y="Manager", orientation="h",
-        color="Caja_Estimada", color_continuous_scale="Greens", custom_data=["Caja_Fmt"]
-    )
-    fig_caja.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-    fig_caja.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
-    st.plotly_chart(fig_caja, use_container_width=True, config=PLOTLY_CONFIG)
-
-    # --- 2. GRÁFICA DE GASTO TOTAL ---
-    st.divider()
-    st.subheader("📊 Gasto Total por Mánager")
-    df_gasto_chart = df_gastos_tot.sort_values(by="GastoTotal", ascending=False).copy()
-    df_gasto_chart["Gasto_Fmt"] = df_gasto_chart["GastoTotal"].apply(fmt)
-    
-    fig_gasto = px.bar(
-        df_gasto_chart, x="GastoTotal", y="Manager", orientation="h",
-        color="GastoTotal", color_continuous_scale="Blues", custom_data=["Gasto_Fmt"]
-    )
-    fig_gasto.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-    fig_gasto.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
-    st.plotly_chart(fig_gasto, use_container_width=True, config=PLOTLY_CONFIG)
-
-    # --- 3. GRÁFICA DE INGRESOS POR VENTAS ---
-    st.divider()
-    st.subheader("💰 Ingresos por Ventas")
-    df_venta_chart = df_ventas_tot.sort_values(by="IngresoTotal", ascending=False).copy()
-    df_venta_chart["Ingreso_Fmt"] = df_venta_chart["IngresoTotal"].apply(fmt)
-    
-    fig_venta = px.bar(
-        df_venta_chart, x="IngresoTotal", y="Manager", orientation="h",
-        color="IngresoTotal", color_continuous_scale="Oranges", custom_data=["Ingreso_Fmt"]
-    )
-    fig_venta.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-    fig_venta.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, xaxis={"title": "Euros (€)"}, coloraxis_showscale=False, height=420, margin=dict(l=20, r=50, t=20, b=20))
-    st.plotly_chart(fig_venta, use_container_width=True, config=PLOTLY_CONFIG)
-
-# ==========================================
-# PESTAÑA 3: MERCADO & SOBREPUJAS
-# ==========================================
-with tab_mercado:
-    st.subheader("📊 Análisis Global de Mercado")
-    df_mercado = df[(df["Vendedor"] == "Mercado") & (df["Tipo"] == "Compra") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
-    df_mercado["Sobreprecio (€)"] = df_mercado["Precio Operación"] - df_mercado["Valor Mercado"]
-    df_mercado["Sobreprecio (%)"] = (df_mercado["Sobreprecio (€)"] / df_mercado["Valor Mercado"]) * 100
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Total Pujas Mercado", f"{len(df_mercado)}")
-    c2.metric("Sobrepuja Media Liga", fmt_pct(df_mercado["Sobreprecio (%)"].mean()))
-    c3.metric("Sobrepuja Mediana Liga", fmt_pct(df_mercado["Sobreprecio (%)"].median()))
-
-    st.divider()
-    st.subheader("🔥 Top 10 Fichajes Más Caros del Mercado")
-    top10 = df_mercado.nlargest(10, "Precio Operación").copy()
-    top10["Precio_Fmt"] = top10["Precio Operación"].apply(fmt)
-    fig = px.bar(top10, x="Precio Operación", y="Jugador", color="Comprador", orientation="h", custom_data=["Precio_Fmt", "Comprador"])
-    fig.update_traces(texttemplate="%{customdata[0]}", textposition="outside")
-    fig.update_layout(yaxis={"categoryorder": "total ascending", "title": ""}, height=380, margin=dict(l=20, r=50, t=20, b=20))
-    st.plotly_chart(fig, use_container_width=True, config=PLOTLY_CONFIG)
-
-# ==========================================
-# PESTAÑA 4: RIVALES & CLÁUSULAS
-# ==========================================
-with tab_rivales:
-    todos_managers = set(df["Comprador"].unique()).union(set(df["Vendedor"].unique()))
-    if "Mercado" in todos_managers:
-        todos_managers.remove("Mercado")
-
-    rival_seleccionado = st.selectbox("🔍 Selecciona un Manager:", sorted(list(todos_managers)))
-
-    df_compras_mercado = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] == "Mercado") & (df["Tipo"] == "Compra") & (df["Precio Operación"] >= df["Valor Mercado"])].copy()
-    df_ventas = df[df["Vendedor"] == rival_seleccionado].copy()
-    df_clausulas = df[(df["Comprador"] == rival_seleccionado) & (df["Tipo"] == "Clausulazo")].copy()
-    df_robados = df[(df["Comprador"] == rival_seleccionado) & (df["Vendedor"] != "Mercado") & (df["Vendedor"] != rival_seleccionado)].copy()
-    df_perdidos = df[(df["Vendedor"] == rival_seleccionado) & (df["Comprador"] != "Mercado") & (df["Comprador"] != rival_seleccionado)].copy()
-
-    gasto_total_general = df_compras_mercado["Precio Operación"].sum() + df_clausulas["Precio Operación"].sum() + df_robados["Precio Operación"].sum()
-    ingreso_ventas = df_ventas["Precio Operación"].sum()
-    balance_neto = ingreso_ventas - gasto_total_general
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Gasto Total", fmt(gasto_total_general))
-    m2.metric("Ingresos Ventas", fmt(ingreso_ventas))
-    m3.metric("Balance Neto", fmt(balance_neto), delta="Superávit" if balance_neto >= 0 else "Déficit")
-    
-    sobrepuja_media = ((df_compras_mercado["Precio Operación"] - df_compras_mercado["Valor Mercado"]) / df_compras_mercado["Valor Mercado"] * 100).mean() if not df_compras_mercado.empty else 0.0
-    m4.metric("Sobrepuja Media", fmt_pct(sobrepuja_media))
-
-    st.divider()
-    st.subheader(f"🛒 Pujas de Mercado ({len(df_compras_mercado)} fichajes)")
-    if df_compras_mercado.empty:
-        st.info("Sin fichajes directos de mercado.")
-    else:
-        top_compras_rival = df_compras_mercado.nlargest(8, "Precio Operación").copy()
-        top_compras_rival["Precio_Fmt"] = top_compras_rival["Precio Operación"].apply(fmt)
-        fig_compras = px.bar(top_compras_rival, x="Jugador", y="Precio Operación", color="Valor Mercado")
-        st.plotly_chart(fig_compras, use_container_width=True, config=PLOTLY_CONFIG)
-
-# ==========================================
-# PESTAÑA 5: NOTICIAS LALIGA (POR DIARIO)
-# ==========================================
-with tab_noticias:
-    st.subheader("📰 Actualidad y Rumores de Fichajes por Diario Deportivo")
-    st.caption("Noticias en tiempo real seleccionadas de los principales medios deportivos activos (Marca, AS y Superdeporte).")
-    
-    noticias_dict = fetch_rss_news()
-    
-    # Barra de búsqueda global de noticias
-    busqueda_noticia = st.text_input("🔍 Buscar término en todos los diarios:", placeholder="Ej: Mbappé, Bellingham, Lamine, Fichaje...")
-
-    diarios_disponibles = [d for d in noticias_dict.keys() if len(noticias_dict[d]) > 0]
-    
-    if not diarios_disponibles:
-        st.warning("No se han podido cargar noticias en este momento. Comprueba tu conexión a internet.")
-    else:
-        tabs_diarios = st.tabs([f"📰 {diario}" for diario in diarios_disponibles])
-
-        for i, diario in enumerate(diarios_disponibles):
-            with tabs_diarios[i]:
-                lista_noticias = noticias_dict[diario]
-                
-                if busqueda_noticia:
-                    lista_noticias = [
-                        n for n in lista_noticias 
-                        if busqueda_noticia.lower() in n["Título"].lower() or busqueda_noticia.lower() in n["Resumen"].lower()
-                    ]
-
-                st.markdown(f"### Últimas noticias de **{diario}** ({len(lista_noticias)} artículos)")
-                
-                if not lista_noticias:
-                    st.info(f"No se han encontrado noticias en {diario} con el filtro actual.")
-                else:
-                    for noticia in lista_noticias[:20]:
-                        with st.expander(f"📌 {noticia['Título']}"):
-                            if noticia["Fecha"]:
-                                st.caption(f"🗓️ {noticia['Fecha']}")
-                            if noticia["Resumen"]:
-                                st.write(noticia["Resumen"])
-                            else:
-                                st.write("Consulta el artículo completo en el enlace oficial del diario.")
-                            if noticia["Enlace"]:
-                                st.markdown(f"[🔗 Leer noticia completa en {diario}]({noticia['Enlace']})")
+        st.error("No se pudo encontrar una columna de fecha en el archivo.")
