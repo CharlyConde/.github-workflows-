@@ -1,190 +1,188 @@
 Fecha,Jugador,Vendedor,Comprador,Precio Operación,Valor Mercado,Sobreprecio (€),Sobreprecio (%),Tipo
-2026-08-21 07:57,Soler,Troll F.C,Atlético Imperial,6400000,6030000,370000,6.1,Traspaso Rival
-2026-08-21 07:57,Mario Soriano,Atlético Imperial,Mercado,5239800,5020000,219800,4.4,Venta
-2026-08-21 07:39,Turrientes,elAmerican C.F.,Mercado,1827800,1770000,57800,3.3,Venta
-2026-08-21 06:12,Javi Guerra,La Real Vinotinto C.F,Mercado,4977800,4830000,147800,3.1,Venta
-2026-08-21 05:01,Nsongo,Mercado,Atlético Imperial,3639740,2990000,649740,21.7,Compra
-2026-08-21 05:01,Carlos Romero,Mercado,elAmerican C.F.,7666000,7360000,306000,4.2,Compra
-2026-08-21 05:01,Arnau Ortiz,Mercado,el Austriaco,799000,540000,259000,48.0,Compra
-2026-08-21 05:01,Robbie Ure,Mercado,Super Recineta C.F.,5200000,3830000,1370000,35.8,Compra
+2026-08-22 06:17,Toni Martínez,Giorgia Melones,Mercado,5367300,5330000,37300,0.7,Venta
+2026-08-22 05:03,Rafael Garrido,Mercado,U. D. Victormenta,1515000,1270000,245000,19.3,Compra
+2026-08-22 05:03,Joaquín Muñoz,Mercado,Real Bravo C.F,2817610,2030000,787610,38.8,Compra
+2026-08-22 05:03,Fran García,Mercado,elAmerican C.F.,5655000,5640000,15000,0.3,Compra
+2026-08-22 05:03,Unai Simón,Mercado,Conde Vampiros F.C.,5100001,5110000,-9999,-0.2,Compra
+2026-08-22 05:03,Diego Conde,Mercado,La Real Vinotinto C.F,242424,240000,2424,1.0,Compra
+2026-08-21 21:30,John Donald,elAmerican C.F.,Mercado,163700,160000,3700,2.3,Venta
+2026-08-21 07:57,Soler,Troll F.C,Atlético Imperial,6400000,6040000,360000,6.0,Traspaso Rival
+2026-08-21 07:57,Mario Soriano,Atlético Imperial,Mercado,5239800,5000000,239800,4.8,Venta
+2026-08-21 07:39,Turrientes,elAmerican C.F.,Mercado,1827800,1740000,87800,5.0,Venta
+2026-08-21 06:12,Javi Guerra,La Real Vinotinto C.F,Mercado,4977800,4810000,167800,3.5,Venta
+2026-08-21 05:01,Nsongo,Mercado,Atlético Imperial,3639740,3030000,609740,20.1,Compra
+2026-08-21 05:01,Carlos Romero,Mercado,elAmerican C.F.,7666000,7400000,266000,3.6,Compra
+2026-08-21 05:01,Arnau Ortiz,Mercado,el Austriaco,799000,600000,199000,33.2,Compra
+2026-08-21 05:01,Robbie Ure,Mercado,Super Recineta C.F.,5200000,3910000,1290000,33.0,Compra
 2026-08-21 05:01,Villares,Mercado,HansiWagen,1152123,840000,312123,37.2,Compra
-2026-08-21 05:01,Iñigo Vicente,Mercado,Racing Puppies Scuderia,6155000,5900000,255000,4.3,Compra
+2026-08-21 05:01,Iñigo Vicente,Mercado,Racing Puppies Scuderia,6155000,5940000,215000,3.6,Compra
 2026-08-21 05:01,Álvaro Núñez,Mercado,Los Ronaldos FC,577777,540000,37777,7.0,Compra
-2026-08-21 04:29,Mariano,American Corruption,Giorgia Melones,4433760,1530000,2903760,189.8,Clausulazo
-2026-08-20 21:08,Alemão,Racing Puppies Scuderia,Mercado,1695000,1580000,115000,7.3,Venta
-2026-08-20 19:14,Pubill,Atlético Imperial,Mercado,6463600,6030000,433600,7.2,Venta
-2026-08-20 19:05,Sergio Martínez,Mercado,Los Ronaldos FC,75000,1250000,-1175000,-94.0,Clausulazo
-2026-08-20 19:04,Villalibre,La Real Vinotinto C.F,Mercado,2811700,2580000,231700,9.0,Venta
-2026-08-20 19:03,Sergio Martínez,Mercado,Los Ronaldos FC,90000,1250000,-1160000,-92.8,Clausulazo
-2026-08-20 19:01,Fran Pérez,Giorgia Melones,Los Ronaldos FC,630000,280000,350000,125.0,Clausulazo
-2026-08-20 18:38,Hugo González,Mercado,Los Ronaldos FC,122000,2460000,-2338000,-95.0,Clausulazo
-2026-08-20 18:38,Sergio Martínez,Mercado,Los Ronaldos FC,58000,1250000,-1192000,-95.4,Clausulazo
-2026-08-20 17:12,Salinas,Racing Puppies Scuderia,Troll F.C,1355000,1040000,315000,30.3,Traspaso Rival
+2026-08-21 04:29,Mariano,American Corruption,Giorgia Melones,4433760,1780000,2653760,149.1,Clausulazo
+2026-08-20 21:08,Alemão,Racing Puppies Scuderia,Mercado,1695000,1500000,195000,13.0,Venta
+2026-08-20 19:14,Pubill,Atlético Imperial,Mercado,6463600,5920000,543600,9.2,Venta
+2026-08-20 19:05,Sergio Martínez,Mercado,Los Ronaldos FC,75000,1500000,-1425000,-95.0,Clausulazo
+2026-08-20 19:04,Villalibre,La Real Vinotinto C.F,Mercado,2811700,2560000,251700,9.8,Venta
+2026-08-20 19:03,Sergio Martínez,Mercado,Los Ronaldos FC,90000,1500000,-1410000,-94.0,Clausulazo
+2026-08-20 19:01,Fran Pérez,Giorgia Melones,Los Ronaldos FC,630000,290000,340000,117.2,Clausulazo
+2026-08-20 18:38,Hugo González,Mercado,Los Ronaldos FC,122000,2530000,-2408000,-95.2,Clausulazo
+2026-08-20 18:38,Sergio Martínez,Mercado,Los Ronaldos FC,58000,1500000,-1442000,-96.1,Clausulazo
+2026-08-20 17:12,Salinas,Racing Puppies Scuderia,Troll F.C,1355000,1020000,335000,32.8,Traspaso Rival
 2026-08-20 16:04,Álvaro Valles,Mercado,La Real Vinotinto C.F,1,4150000,-4149999,-100.0,Clausulazo
-2026-08-20 16:04,El Hilali,Mercado,La Real Vinotinto C.F,1,2590000,-2589999,-100.0,Clausulazo
-2026-08-20 16:04,Jesús Vázquez,Mercado,La Real Vinotinto C.F,18,710000,-709982,-100.0,Clausulazo
+2026-08-20 16:04,El Hilali,Mercado,La Real Vinotinto C.F,1,2580000,-2579999,-100.0,Clausulazo
+2026-08-20 16:04,Jesús Vázquez,Mercado,La Real Vinotinto C.F,18,740000,-739982,-100.0,Clausulazo
 2026-08-20 16:04,Dani Lorenzo,Mercado,La Real Vinotinto C.F,1,3450000,-3449999,-100.0,Clausulazo
-2026-08-20 16:04,Agoumé,Mercado,La Real Vinotinto C.F,1,2580000,-2579999,-100.0,Clausulazo
-2026-08-20 16:04,Álex Calatrava,Mercado,La Real Vinotinto C.F,2,4310000,-4309998,-100.0,Clausulazo
-2026-08-20 16:04,Javi Guerra,Mercado,La Real Vinotinto C.F,1,4830000,-4829999,-100.0,Clausulazo
-2026-08-20 16:04,Moncayola,Mercado,La Real Vinotinto C.F,1,3230000,-3229999,-100.0,Clausulazo
-2026-08-20 16:04,Rubén García,Mercado,La Real Vinotinto C.F,1,2770000,-2769999,-100.0,Clausulazo
-2026-08-20 16:04,Villalibre,Mercado,La Real Vinotinto C.F,1,2580000,-2579999,-100.0,Clausulazo
-2026-08-20 16:04,Budimir,Mercado,La Real Vinotinto C.F,1,10600000,-10599999,-100.0,Clausulazo
-2026-08-20 12:30,Mendoza,Mercado,Los Ronaldos FC,55000,700000,-645000,-92.1,Clausulazo
-2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,100000,7740000,-7640000,-98.7,Clausulazo
+2026-08-20 16:04,Agoumé,Mercado,La Real Vinotinto C.F,1,2600000,-2599999,-100.0,Clausulazo
+2026-08-20 16:04,Álex Calatrava,Mercado,La Real Vinotinto C.F,2,4290000,-4289998,-100.0,Clausulazo
+2026-08-20 16:04,Javi Guerra,Mercado,La Real Vinotinto C.F,1,4810000,-4809999,-100.0,Clausulazo
+2026-08-20 16:04,Moncayola,Mercado,La Real Vinotinto C.F,1,3220000,-3219999,-100.0,Clausulazo
+2026-08-20 16:04,Rubén García,Mercado,La Real Vinotinto C.F,1,2760000,-2759999,-100.0,Clausulazo
+2026-08-20 16:04,Villalibre,Mercado,La Real Vinotinto C.F,1,2560000,-2559999,-100.0,Clausulazo
+2026-08-20 16:04,Budimir,Mercado,La Real Vinotinto C.F,1,10550000,-10549999,-100.0,Clausulazo
+2026-08-20 12:30,Mendoza,Mercado,Los Ronaldos FC,55000,720000,-665000,-92.4,Clausulazo
+2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,100000,7860000,-7760000,-98.7,Clausulazo
 2026-08-20 11:45,Aimar Oroz,Mercado,Real Gardel Sharks,100000,4130000,-4030000,-97.6,Clausulazo
-2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,100000,4160000,-4060000,-97.6,Clausulazo
-2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,9000,4160000,-4151000,-99.8,Clausulazo
+2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,100000,4180000,-4080000,-97.6,Clausulazo
+2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,9000,4180000,-4171000,-99.8,Clausulazo
 2026-08-20 11:45,Aimar Oroz,Mercado,Real Gardel Sharks,32000,4130000,-4098000,-99.2,Clausulazo
-2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,248232,7740000,-7491768,-96.8,Clausulazo
+2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,248232,7860000,-7611768,-96.8,Clausulazo
 2026-08-20 11:45,Aimar Oroz,Mercado,Real Gardel Sharks,133000,4130000,-3997000,-96.8,Clausulazo
-2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,133000,4160000,-4027000,-96.8,Clausulazo
-2026-08-20 11:45,Rioja,Mercado,Real Gardel Sharks,10000,1900000,-1890000,-99.5,Clausulazo
-2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,38000,7740000,-7702000,-99.5,Clausulazo
-2026-08-20 10:42,Yamal,Mercado,Los Ronaldos FC,125000,22010000,-21885000,-99.4,Clausulazo
-2026-08-20 10:42,Sergio Martínez,Mercado,Los Ronaldos FC,150000,1250000,-1100000,-88.0,Clausulazo
-2026-08-20 08:36,Etta Eyong,Real Bravo C.F,Mercado,3385800,3360000,25800,0.8,Venta
+2026-08-20 11:45,Guruzeta,Mercado,Real Gardel Sharks,133000,4180000,-4047000,-96.8,Clausulazo
+2026-08-20 11:45,Rioja,Mercado,Real Gardel Sharks,10000,1890000,-1880000,-99.5,Clausulazo
+2026-08-20 11:45,Baena,Mercado,Real Gardel Sharks,38000,7860000,-7822000,-99.5,Clausulazo
+2026-08-20 10:42,Yamal,Mercado,Los Ronaldos FC,125000,22030000,-21905000,-99.4,Clausulazo
+2026-08-20 10:42,Sergio Martínez,Mercado,Los Ronaldos FC,150000,1500000,-1350000,-90.0,Clausulazo
+2026-08-20 08:36,Etta Eyong,Real Bravo C.F,Mercado,3385800,3310000,75800,2.3,Venta
 2026-08-20 06:44,Foulquier,La Real Vinotinto C.F,Mercado,157000,150000,7000,4.7,Venta
 2026-08-20 06:12,Javier Rueda,Super Recineta C.F.,Real Gardel Sharks,2550428,2030000,520428,25.6,Traspaso Rival
-2026-08-20 05:52,Luismi Cruz,Xiks United,Mercado,1699800,1620000,79800,4.9,Venta
+2026-08-20 05:52,Luismi Cruz,Xiks United,Mercado,1699800,1590000,109800,6.9,Venta
 2026-08-20 05:52,Patiño,Super Recineta C.F.,Mercado,156700,150000,6700,4.5,Venta
 2026-08-20 05:52,Odysseas,elAmerican C.F.,Mercado,4096100,3880000,216100,5.6,Venta
-2026-08-20 05:28,Izan Merino,Los Ronaldos FC,Mercado,2457800,2400000,57800,2.4,Venta
-2026-08-20 05:05,Bright Ede,Mercado,elAmerican C.F.,1678000,1220000,458000,37.5,Compra
-2026-08-20 05:05,Abde Rebbach,Mercado,Los Ronaldos FC,1808450,1300000,508450,39.1,Compra
-2026-08-20 05:05,Torró,Mercado,Troll F.C,1770000,1620000,150000,9.3,Compra
+2026-08-20 05:28,Izan Merino,Los Ronaldos FC,Mercado,2457800,2380000,77800,3.3,Venta
+2026-08-20 05:05,Bright Ede,Mercado,elAmerican C.F.,1678000,1250000,428000,34.2,Compra
+2026-08-20 05:05,Abde Rebbach,Mercado,Los Ronaldos FC,1808450,1320000,488450,37.0,Compra
+2026-08-20 05:05,Torró,Mercado,Troll F.C,1770000,1610000,160000,9.9,Compra
 2026-08-20 05:05,Rafa Rodríguez,Mercado,American Corruption,564000,510000,54000,10.6,Compra
-2026-08-20 05:05,Toni Martínez,Mercado,Giorgia Melones,5999000,5440000,559000,10.3,Compra
-2026-08-20 05:05,Gavi,Mercado,Troll F.C,3999000,3560000,439000,12.3,Compra
+2026-08-20 05:05,Toni Martínez,Mercado,Giorgia Melones,5999000,5330000,669000,12.6,Compra
+2026-08-20 05:05,Gavi,Mercado,Troll F.C,3999000,3540000,459000,13.0,Compra
 2026-08-20 05:05,Yoel Lago,Mercado,Racing Puppies Scuderia,287000,260000,27000,10.4,Compra
-2026-08-20 01:17,Álvaro García,La Real Vinotinto C.F,Super Recineta C.F.,5254535,4310000,944535,21.9,Traspaso Rival
-2026-08-20 00:30,Grimaldo,Troll F.C,Mercado,7232100,6880000,352100,5.1,Venta
-2026-08-20 00:30,Gijselhart,Troll F.C,Mercado,1252500,1100000,152500,13.9,Venta
-2026-08-19 22:28,Tunde,U. D. Victormenta,Mercado,1019600,1030000,-10400,-1.0,Venta
-2026-08-19 22:24,Alfonso Herrero,Mercado,Real Gardel Sharks,1,3840000,-3839999,-100.0,Clausulazo
-2026-08-19 22:24,Laporte,Mercado,Real Gardel Sharks,1,5420000,-5419999,-100.0,Clausulazo
-2026-08-19 21:10,Lookman,Atlético Imperial,Mercado,9669400,9090000,579400,6.4,Venta
-2026-08-19 21:10,Lemar,HansiWagen,Mercado,859200,840000,19200,2.3,Venta
+2026-08-20 01:17,Álvaro García,La Real Vinotinto C.F,Super Recineta C.F.,5254535,4330000,924535,21.4,Traspaso Rival
+2026-08-20 00:30,Grimaldo,Troll F.C,Mercado,7232100,6810000,422100,6.2,Venta
+2026-08-20 00:30,Gijselhart,Troll F.C,Mercado,1252500,1080000,172500,16.0,Venta
+2026-08-19 22:28,Tunde,U. D. Victormenta,Mercado,1019600,1020000,-400,-0.0,Venta
+2026-08-19 22:24,Alfonso Herrero,Mercado,Real Gardel Sharks,1,3880000,-3879999,-100.0,Clausulazo
+2026-08-19 22:24,Laporte,Mercado,Real Gardel Sharks,1,5410000,-5409999,-100.0,Clausulazo
+2026-08-19 21:10,Lookman,Atlético Imperial,Mercado,9669400,8890000,779400,8.8,Venta
+2026-08-19 21:10,Lemar,HansiWagen,Mercado,859200,820000,39200,4.8,Venta
 2026-08-19 15:25,Pedrosa,Real Bravo C.F,Mercado,306100,290000,16100,5.6,Venta
 2026-08-19 14:53,Benavidez,Real Bravo C.F,Mercado,154400,150000,4400,2.9,Venta
-2026-08-19 08:34,Angeliño,Conde Vampiros F.C.,Mercado,3057600,2760000,297600,10.8,Venta
-2026-08-19 07:28,Redondo,La Real Vinotinto C.F,Super Recineta C.F.,360000,240000,120000,50.0,Traspaso Rival
-2026-08-19 06:40,Moleiro,Real Gardel Sharks,Mercado,9901600,9150000,751600,8.2,Venta
-2026-08-19 05:02,Héctor Fort,Mercado,Giorgia Melones,782000,750000,32000,4.3,Compra
-2026-08-19 05:02,Robert Navarro,Mercado,Racing Puppies Scuderia,2255100,2130000,125100,5.9,Compra
-2026-08-19 05:02,Santiago Mouriño,Mercado,Real Bravo C.F,3418960,3250000,168960,5.2,Compra
-2026-08-19 05:02,Mariano,Mercado,American Corruption,2463200,1530000,933200,61.0,Compra
-2026-08-19 05:02,Nacho Pérez,Mercado,Conde Vampiros F.C.,415000,340000,75000,22.1,Compra
-2026-08-19 05:02,Koke,Mercado,Real Bravo C.F,2827280,2580000,247280,9.6,Compra
-2026-08-19 05:02,Ionut Radu,Mercado,elAmerican C.F.,3881100,3790000,91100,2.4,Compra
-2026-08-18 22:07,El Hilali,elAmerican C.F.,La Real Vinotinto C.F,2711420,2590000,121420,4.7,Traspaso Rival
-2026-08-18 21:42,Expósito,Giorgia Melones,Mercado,5054300,4840000,214300,4.4,Venta
-2026-08-18 21:00,Roro Riquelme,La Real Vinotinto C.F,Xiks United,2500000,2180000,320000,14.7,Traspaso Rival
-2026-08-18 19:09,Isi Palazón,Super Recineta C.F.,Real Gardel Sharks,4510000,3640000,870000,23.9,Traspaso Rival
-2026-08-18 18:58,Tete Morente,American Corruption,Atlético Imperial,564000,300000,264000,88.0,Clausulazo
-2026-08-18 15:42,Davinchi,Los Ronaldos FC,Mercado,1788400,1580000,208400,13.2,Venta
-2026-08-18 15:38,Sergio Martínez,Racing Puppies Scuderia,Los Ronaldos FC,1508000,1250000,258000,20.6,Clausulazo
-2026-08-18 15:38,Peque,Racing Puppies Scuderia,American Corruption,2257200,1530000,727200,47.5,Clausulazo
-2026-08-18 14:54,Zaid Romero,American Corruption,Mercado,3911000,3620000,291000,8.0,Venta
-2026-08-18 11:03,Yanis Musuayi,Troll F.C,Mercado,1389400,1250000,139400,11.2,Venta
-2026-08-18 11:03,Cabrera,Troll F.C,Mercado,3978400,3280000,698400,21.3,Venta
-2026-08-18 06:50,David Mella,Super Recineta C.F.,Mercado,1430800,1330000,100800,7.6,Venta
-2026-08-18 06:13,Balliu,Mercado,elAmerican C.F.,40000,1270000,-1230000,-96.9,Clausulazo
-2026-08-18 05:53,Balliu,Mercado,elAmerican C.F.,100000,1270000,-1170000,-92.1,Clausulazo
-2026-08-18 05:53,Balliu,Mercado,elAmerican C.F.,10000,1270000,-1260000,-99.2,Clausulazo
-2026-08-18 05:52,Pere Milla,elAmerican C.F.,Mercado,2991100,2620000,371100,14.2,Venta
-2026-08-18 05:51,Pablo Ramón,Real Gardel Sharks,elAmerican C.F.,1740723,1210000,530723,43.9,Clausulazo
-2026-08-18 05:17,Hinojo,La Real Vinotinto C.F,Xiks United,1280240,1050000,230240,21.9,Clausulazo
-2026-08-18 05:17,Sergio Martínez,Mercado,Racing Puppies Scuderia,200000,1250000,-1050000,-84.0,Clausulazo
-2026-08-18 05:08,Kike Salas,Xiks United,Mercado,2946800,2610000,336800,12.9,Venta
-2026-08-18 05:02,Giménez,Mercado,el Austriaco,370050,360000,10050,2.8,Compra
+2026-08-19 08:34,Angeliño,Conde Vampiros F.C.,Mercado,3057600,2710000,347600,12.8,Venta
+2026-08-19 07:28,Redondo,La Real Vinotinto C.F,Super Recineta C.F.,360000,270000,90000,33.3,Traspaso Rival
+2026-08-19 06:40,Moleiro,Real Gardel Sharks,Mercado,9901600,9070000,831600,9.2,Venta
+2026-08-19 05:02,Héctor Fort,Mercado,Giorgia Melones,782000,740000,42000,5.7,Compra
+2026-08-19 05:02,Robert Navarro,Mercado,Racing Puppies Scuderia,2255100,2120000,135100,6.4,Compra
+2026-08-19 05:02,Santiago Mouriño,Mercado,Real Bravo C.F,3418960,3230000,188960,5.9,Compra
+2026-08-19 05:02,Mariano,Mercado,American Corruption,2463200,1780000,683200,38.4,Compra
+2026-08-19 05:02,Nacho Pérez,Mercado,Conde Vampiros F.C.,415000,390000,25000,6.4,Compra
+2026-08-19 05:02,Koke,Mercado,Real Bravo C.F,2827280,2660000,167280,6.3,Compra
+2026-08-19 05:02,Ionut Radu,Mercado,elAmerican C.F.,3881100,3780000,101100,2.7,Compra
+2026-08-18 22:07,El Hilali,elAmerican C.F.,La Real Vinotinto C.F,2711420,2580000,131420,5.1,Traspaso Rival
+2026-08-18 21:42,Expósito,Giorgia Melones,Mercado,5054300,4830000,224300,4.6,Venta
+2026-08-18 21:00,Roro Riquelme,La Real Vinotinto C.F,Xiks United,2500000,2380000,120000,5.0,Traspaso Rival
+2026-08-18 19:09,Isi Palazón,Super Recineta C.F.,Real Gardel Sharks,4510000,3470000,1040000,30.0,Traspaso Rival
+2026-08-18 18:58,Tete Morente,American Corruption,Atlético Imperial,564000,310000,254000,81.9,Clausulazo
+2026-08-18 15:42,Davinchi,Los Ronaldos FC,Mercado,1788400,1570000,218400,13.9,Venta
+2026-08-18 15:38,Sergio Martínez,Racing Puppies Scuderia,Los Ronaldos FC,1508000,1500000,8000,0.5,Clausulazo
+2026-08-18 15:38,Peque,Racing Puppies Scuderia,American Corruption,2257200,1670000,587200,35.2,Clausulazo
+2026-08-18 14:54,Zaid Romero,American Corruption,Mercado,3911000,3590000,321000,8.9,Venta
+2026-08-18 11:03,Yanis Musuayi,Troll F.C,Mercado,1389400,1230000,159400,13.0,Venta
+2026-08-18 11:03,Cabrera,Troll F.C,Mercado,3978400,3230000,748400,23.2,Venta
+2026-08-18 06:50,David Mella,Super Recineta C.F.,Mercado,1430800,1320000,110800,8.4,Venta
+2026-08-18 06:13,Balliu,Mercado,elAmerican C.F.,40000,1280000,-1240000,-96.9,Clausulazo
+2026-08-18 05:53,Balliu,Mercado,elAmerican C.F.,100000,1280000,-1180000,-92.2,Clausulazo
+2026-08-18 05:53,Balliu,Mercado,elAmerican C.F.,10000,1280000,-1270000,-99.2,Clausulazo
+2026-08-18 05:52,Pere Milla,elAmerican C.F.,Mercado,2991100,2600000,391100,15.0,Venta
+2026-08-18 05:51,Pablo Ramón,Real Gardel Sharks,elAmerican C.F.,1740723,1320000,420723,31.9,Clausulazo
+2026-08-18 05:17,Hinojo,La Real Vinotinto C.F,Xiks United,1280240,1230000,50240,4.1,Clausulazo
+2026-08-18 05:17,Sergio Martínez,Mercado,Racing Puppies Scuderia,200000,1500000,-1300000,-86.7,Clausulazo
+2026-08-18 05:08,Kike Salas,Xiks United,Mercado,2946800,2590000,356800,13.8,Venta
+2026-08-18 05:02,Giménez,Mercado,el Austriaco,370050,350000,20050,5.7,Compra
 2026-08-18 05:02,Lucas Cepeda,Mercado,Xiks United,869696,470000,399696,85.0,Compra
-2026-08-18 05:02,Luismi Cruz,Mercado,Xiks United,2169696,1620000,549696,33.9,Compra
-2026-08-18 05:02,Jorge Salinas,Mercado,HansiWagen,3452321,3050000,402321,13.2,Compra
-2026-08-18 05:02,Manu Bueno,Mercado,Super Recineta C.F.,1250000,500000,750000,150.0,Compra
-2026-08-18 05:02,Starfelt,Mercado,Super Recineta C.F.,2966250,2750000,216250,7.9,Compra
-2026-08-18 05:02,Pedri,Mercado,Xiks United,15860000,15410000,450000,2.9,Compra
+2026-08-18 05:02,Luismi Cruz,Mercado,Xiks United,2169696,1590000,579696,36.5,Compra
+2026-08-18 05:02,Jorge Salinas,Mercado,HansiWagen,3452321,3080000,372321,12.1,Compra
+2026-08-18 05:02,Manu Bueno,Mercado,Super Recineta C.F.,1250000,570000,680000,119.3,Compra
+2026-08-18 05:02,Starfelt,Mercado,Super Recineta C.F.,2966250,2730000,236250,8.7,Compra
+2026-08-18 05:02,Pedri,Mercado,Xiks United,15860000,15370000,490000,3.2,Compra
 2026-08-17 23:11,Boiro,U. D. Victormenta,Mercado,198500,200000,-1500,-0.8,Venta
-2026-08-17 22:59,Buchanan,U. D. Victormenta,Mercado,3338100,3180000,158100,5.0,Venta
-2026-08-17 21:02,Villalibre,Atlético Imperial,La Real Vinotinto C.F,3000000,2580000,420000,16.3,Traspaso Rival
-2026-08-17 20:48,Julio Díaz,HansiWagen,Mercado,1266600,970000,296600,30.6,Venta
-2026-08-17 19:02,Redondo,Los Ronaldos FC,La Real Vinotinto C.F,322000,240000,82000,34.2,Clausulazo
-2026-08-17 18:33,Olasagasti,Atlético Imperial,Mercado,2881200,2490000,391200,15.7,Venta
+2026-08-17 22:59,Buchanan,U. D. Victormenta,Mercado,3338100,3160000,178100,5.6,Venta
+2026-08-17 21:02,Villalibre,Atlético Imperial,La Real Vinotinto C.F,3000000,2560000,440000,17.2,Traspaso Rival
+2026-08-17 20:48,Julio Díaz,HansiWagen,Mercado,1266600,950000,316600,33.3,Venta
+2026-08-17 19:02,Redondo,Los Ronaldos FC,La Real Vinotinto C.F,322000,270000,52000,19.3,Clausulazo
+2026-08-17 18:33,Olasagasti,Atlético Imperial,Mercado,2881200,2460000,421200,17.1,Venta
 2026-08-17 16:08,Nico Serrano,Conde Vampiros F.C.,Mercado,157300,150000,7300,4.9,Venta
-2026-08-17 15:36,Sergio Martínez,elAmerican C.F.,Racing Puppies Scuderia,604000,1250000,-646000,-51.7,Clausulazo
-2026-08-17 10:48,Antonio Blanco,Giorgia Melones,Mercado,3870100,3700000,170100,4.6,Venta
+2026-08-17 15:36,Sergio Martínez,elAmerican C.F.,Racing Puppies Scuderia,604000,1500000,-896000,-59.7,Clausulazo
+2026-08-17 10:48,Antonio Blanco,Giorgia Melones,Mercado,3870100,3650000,220100,6.0,Venta
 2026-08-17 10:48,Berenguer,Giorgia Melones,Mercado,2257300,2200000,57300,2.6,Venta
-2026-08-17 10:48,Robert Navarro,Real Bravo C.F,Mercado,2343000,2130000,213000,10.0,Venta
-2026-08-17 07:07,Aleñá,Real Gardel Sharks,Mercado,967300,850000,117300,13.8,Venta
-2026-08-17 07:07,Camello,Super Recineta C.F.,Mercado,2342400,2190000,152400,7.0,Venta
-2026-08-17 05:23,Pedro Díaz,Xiks United,Mercado,1053200,1000000,53200,5.3,Venta
-2026-08-17 05:23,Antony,Xiks United,Mercado,10829000,9980000,849000,8.5,Venta
-2026-08-17 05:23,Ratiu,Xiks United,Mercado,5308800,4560000,748800,16.4,Venta
-2026-08-17 05:08,Sotelo,Racing Puppies Scuderia,Mercado,2757000,2190000,567000,25.9,Venta
-2026-08-17 05:01,Jon Martín,Mercado,Atlético Imperial,4580830,4390000,190830,4.3,Compra
-2026-08-17 05:01,Arguibide,Mercado,Xiks United,1169696,480000,689696,143.7,Compra
-2026-08-17 05:01,Bisiwu,Mercado,Troll F.C,700000,540000,160000,29.6,Compra
+2026-08-17 10:48,Robert Navarro,Real Bravo C.F,Mercado,2343000,2120000,223000,10.5,Venta
+2026-08-17 07:07,Aleñá,Real Gardel Sharks,Mercado,967300,840000,127300,15.2,Venta
+2026-08-17 07:07,Camello,Super Recineta C.F.,Mercado,2342400,2350000,-7600,-0.3,Venta
+2026-08-17 05:23,Pedro Díaz,Xiks United,Mercado,1053200,980000,73200,7.5,Venta
+2026-08-17 05:23,Antony,Xiks United,Mercado,10829000,10020000,809000,8.1,Venta
+2026-08-17 05:23,Ratiu,Xiks United,Mercado,5308800,4470000,838800,18.8,Venta
+2026-08-17 05:08,Sotelo,Racing Puppies Scuderia,Mercado,2757000,2160000,597000,27.6,Venta
+2026-08-17 05:01,Jon Martín,Mercado,Atlético Imperial,4580830,4370000,210830,4.8,Compra
+2026-08-17 05:01,Arguibide,Mercado,Xiks United,1169696,500000,669696,133.9,Compra
+2026-08-17 05:01,Bisiwu,Mercado,Troll F.C,700000,590000,110000,18.6,Compra
 2026-08-17 05:01,Hugo Duro,Mercado,Giorgia Melones,3016000,2830000,186000,6.6,Compra
-2026-08-17 05:01,Urko Gonzalez,Mercado,U. D. Victormenta,2834000,2590000,244000,9.4,Compra
+2026-08-17 05:01,Urko Gonzalez,Mercado,U. D. Victormenta,2834000,2610000,224000,8.6,Compra
 2026-08-17 05:01,Rego,Mercado,Super Recineta C.F.,310080,310000,80,0.0,Compra
-2026-08-17 05:01,Fer Niño,Mercado,U. D. Victormenta,3587000,2880000,707000,24.5,Compra
-2026-08-17 05:01,Álvaro García,Mercado,La Real Vinotinto C.F,4555554,4310000,245554,5.7,Compra
-2026-08-17 05:01,Sergio Gómez,Mercado,Real Gardel Sharks,3999999,3690000,309999,8.4,Compra
-2026-08-17 05:01,Luka Sucic,Mercado,Giorgia Melones,2401000,2270000,131000,5.8,Compra
-2026-08-16 19:04,Dolan,Mercado,Real Bravo C.F,130740,2670000,-2539260,-95.1,Clausulazo
+2026-08-17 05:01,Fer Niño,Mercado,U. D. Victormenta,3587000,2840000,747000,26.3,Compra
+2026-08-17 05:01,Álvaro García,Mercado,La Real Vinotinto C.F,4555554,4330000,225554,5.2,Compra
+2026-08-17 05:01,Sergio Gómez,Mercado,Real Gardel Sharks,3999999,3680000,319999,8.7,Compra
+2026-08-17 05:01,Luka Sucic,Mercado,Giorgia Melones,2401000,2260000,141000,6.2,Compra
+2026-08-16 19:04,Dolan,Mercado,Real Bravo C.F,130740,2790000,-2659260,-95.3,Clausulazo
 2026-08-16 18:36,Gorosabel,Real Gardel Sharks,Mercado,247500,330000,-82500,-25.0,Venta
-2026-08-16 17:31,Hinojo,Racing Puppies Scuderia,La Real Vinotinto C.F,640120,1050000,-409880,-39.0,Clausulazo
+2026-08-16 17:31,Hinojo,Racing Puppies Scuderia,La Real Vinotinto C.F,640120,1230000,-589880,-48.0,Clausulazo
 2026-08-16 16:04,Raba,La Real Vinotinto C.F,Mercado,243200,240000,3200,1.3,Venta
-2026-08-16 15:36,Sergio Martínez,American Corruption,elAmerican C.F.,302000,1250000,-948000,-75.8,Clausulazo
-2026-08-16 09:29,Mayoral,Troll F.C,Mercado,2362000,1760000,602000,34.2,Venta
-2026-08-16 09:07,Jesús Vázquez,Atlético Imperial,La Real Vinotinto C.F,1000000,710000,290000,40.8,Clausulazo
+2026-08-16 15:36,Sergio Martínez,American Corruption,elAmerican C.F.,302000,1500000,-1198000,-79.9,Clausulazo
+2026-08-16 09:29,Mayoral,Troll F.C,Mercado,2362000,1740000,622000,35.7,Venta
+2026-08-16 09:07,Jesús Vázquez,Atlético Imperial,La Real Vinotinto C.F,1000000,740000,260000,35.1,Clausulazo
 2026-08-16 07:57,Kita,el Austriaco,Mercado,156500,150000,6500,4.3,Venta
-2026-08-16 07:39,Kiko Femenía,La Real Vinotinto C.F,Mercado,1238900,1000000,238900,23.9,Venta
-2026-08-16 07:39,Bellerín,La Real Vinotinto C.F,Mercado,2903000,2830000,73000,2.6,Venta
-2026-08-16 07:39,Pablo García,La Real Vinotinto C.F,Mercado,357400,350000,7400,2.1,Venta
-2026-08-16 05:05,Isaac Romero,Los Ronaldos FC,Mercado,2883800,2160000,723800,33.5,Venta
-2026-08-16 05:02,Angeliño,Mercado,Conde Vampiros F.C.,3333000,2760000,573000,20.8,Compra
-2026-08-16 05:02,Hancko,Mercado,Los Ronaldos FC,4085930,3910000,175930,4.5,Compra
-2026-08-16 05:02,Pepelu,Mercado,Troll F.C,2962000,2690000,272000,10.1,Compra
-2026-08-16 05:02,Peque,Mercado,Racing Puppies Scuderia,1188000,1530000,-342000,-22.4,Compra
+2026-08-16 07:39,Kiko Femenía,La Real Vinotinto C.F,Mercado,1238900,990000,248900,25.1,Venta
+2026-08-16 07:39,Bellerín,La Real Vinotinto C.F,Mercado,2903000,2820000,83000,2.9,Venta
+2026-08-16 07:39,Pablo García,La Real Vinotinto C.F,Mercado,357400,340000,17400,5.1,Venta
+2026-08-16 05:05,Isaac Romero,Los Ronaldos FC,Mercado,2883800,2130000,753800,35.4,Venta
+2026-08-16 05:02,Angeliño,Mercado,Conde Vampiros F.C.,3333000,2710000,623000,23.0,Compra
+2026-08-16 05:02,Hancko,Mercado,Los Ronaldos FC,4085930,3970000,115930,2.9,Compra
+2026-08-16 05:02,Pepelu,Mercado,Troll F.C,2962000,2680000,282000,10.5,Compra
+2026-08-16 05:02,Peque,Mercado,Racing Puppies Scuderia,1188000,1670000,-482000,-28.9,Compra
 2026-08-16 05:02,Patiño,Mercado,Super Recineta C.F.,150010,150000,10,0.0,Compra
-2026-08-16 05:02,Gabriel Suazo,Mercado,American Corruption,1890000,1840000,50000,2.7,Compra
-2026-08-16 05:02,Rioja,Mercado,Real Gardel Sharks,2269999,1900000,369999,19.5,Compra
+2026-08-16 05:02,Gabriel Suazo,Mercado,American Corruption,1890000,1850000,40000,2.2,Compra
+2026-08-16 05:02,Rioja,Mercado,Real Gardel Sharks,2269999,1890000,379999,20.1,Compra
 2026-08-15 22:19,Konaré,elAmerican C.F.,Mercado,154800,150000,4800,3.2,Venta
-2026-08-15 17:31,Hinojo,el Austriaco,Racing Puppies Scuderia,320060,1050000,-729940,-69.5,Clausulazo
-2026-08-15 17:31,Miguel Sierra,Xiks United,Atlético Imperial,1695907,1650000,45907,2.8,Clausulazo
-2026-08-15 16:36,Natan,elAmerican C.F.,Mercado,3218800,3080000,138800,4.5,Venta
-2026-08-15 10:21,Canales,Troll F.C,Mercado,7211500,7750000,-538500,-6.9,Venta
-2026-08-15 08:59,Sangaré,La Real Vinotinto C.F,Real Bravo C.F,1900000,1670000,230000,13.8,Traspaso Rival
+2026-08-15 17:31,Hinojo,el Austriaco,Racing Puppies Scuderia,320060,1230000,-909940,-74.0,Clausulazo
+2026-08-15 17:31,Miguel Sierra,Xiks United,Atlético Imperial,1695907,1750000,-54093,-3.1,Clausulazo
+2026-08-15 16:36,Natan,elAmerican C.F.,Mercado,3218800,3090000,128800,4.2,Venta
+2026-08-15 10:21,Canales,Troll F.C,Mercado,7211500,7780000,-568500,-7.3,Venta
+2026-08-15 08:59,Sangaré,La Real Vinotinto C.F,Real Bravo C.F,1900000,1650000,250000,15.2,Traspaso Rival
 2026-08-15 08:59,Letacek,Real Bravo C.F,Mercado,147200,150000,-2800,-1.9,Venta
-2026-08-15 08:10,Giuliano Simeone,American Corruption,Mercado,5816100,5690000,126100,2.2,Venta
-2026-08-15 07:45,Villalibre,Los Ronaldos FC,Atlético Imperial,3260000,2580000,680000,26.4,Traspaso Rival
-2026-08-15 06:49,Mario Martín,Atlético Imperial,U. D. Victormenta,2400000,2240000,160000,7.1,Traspaso Rival
+2026-08-15 08:10,Giuliano Simeone,American Corruption,Mercado,5816100,5620000,196100,3.5,Venta
+2026-08-15 07:45,Villalibre,Los Ronaldos FC,Atlético Imperial,3260000,2560000,700000,27.3,Traspaso Rival
+2026-08-15 06:49,Mario Martín,Atlético Imperial,U. D. Victormenta,2400000,2230000,170000,7.6,Traspaso Rival
 2026-08-15 05:51,Sazonov,Super Recineta C.F.,Giorgia Melones,350000,270000,80000,29.6,Traspaso Rival
-2026-08-15 05:42,André Almeida,Mercado,Conde Vampiros F.C.,300000,600000,-300000,-50.0,Clausulazo
-2026-08-15 05:40,Rüdiger,Conde Vampiros F.C.,Mercado,3576600,3480000,96600,2.8,Venta
-2026-08-15 05:01,Pablo Marín,Mercado,Troll F.C,621000,510000,111000,21.8,Compra
+2026-08-15 05:42,André Almeida,Mercado,Conde Vampiros F.C.,300000,620000,-320000,-51.6,Clausulazo
+2026-08-15 05:40,Rüdiger,Conde Vampiros F.C.,Mercado,3576600,3450000,126600,3.7,Venta
+2026-08-15 05:01,Pablo Marín,Mercado,Troll F.C,621000,490000,131000,26.7,Compra
 2026-08-15 05:01,Nico Serrano,Mercado,Conde Vampiros F.C.,151000,150000,1000,0.7,Compra
 2026-08-15 05:01,Boiro,Mercado,U. D. Victormenta,205000,200000,5000,2.5,Compra
-2026-08-15 05:01,Arda Güler,Mercado,elAmerican C.F.,8205000,8580000,-375000,-4.4,Compra
+2026-08-15 05:01,Arda Güler,Mercado,elAmerican C.F.,8205000,8640000,-435000,-5.0,Compra
 2026-08-15 05:01,Mendy,Mercado,Xiks United,150000,150000,0,0.0,Compra
-2026-08-15 02:47,Javi Guerra,Xiks United,La Real Vinotinto C.F,4842000,4830000,12000,0.2,Traspaso Rival
-2026-08-15 01:05,Julián Alvarez,elAmerican C.F.,Mercado,11596100,9870000,1726100,17.5,Venta
-2026-08-14 20:56,Bellerín,Real Gardel Sharks,La Real Vinotinto C.F,3200000,2830000,370000,13.1,Traspaso Rival
-2026-08-14 19:18,Manu Bueno,Real Bravo C.F,Mercado,151800,500000,-348200,-69.6,Venta
-2026-08-14 19:18,Davinchi,Racing Puppies Scuderia,Los Ronaldos FC,2424070,1580000,844070,53.4,Traspaso Rival
-2026-08-14 18:01,Robert Navarro,Racing Puppies Scuderia,Real Bravo C.F,2685331,2130000,555331,26.1,Traspaso Rival
-2026-08-14 15:07,Germán Valera,La Real Vinotinto C.F,Mercado,6743600,6640000,103600,1.6,Venta
-2026-08-14 08:21,Loureiro,U. D. Victormenta,Mercado,2231000,1580000,651000,41.2,Venta
-2026-08-14 06:30,Adrián Niño,American Corruption,Mercado,1230000,980000,250000,25.5,Venta
-2026-08-14 05:22,Agoumé,Los Ronaldos FC,La Real Vinotinto C.F,2900000,2580000,320000,12.4,Traspaso Rival
-2026-08-14 05:02,Zubeldia,Mercado,American Corruption,1950000,1820000,130000,7.1,Compra
-2026-08-14 05:02,Ramón Enríquez,Mercado,Los Ronaldos FC,452300,340000,112300,33.0,Compra
-2026-08-14 05:02,Huijsen,Mercado,Racing Puppies Scuderia,4333399,4670000,-336601,-7.2,Compra
-2026-08-14 05:02,Soler,Mercado,Troll F.C,5895000,6030000,-135000,-2.2,Compra
-2026-08-14 05:02,Affengruber,Mercado,HansiWagen,4452362,3740000,712362,19.0,Compra
-2026-08-14 05:02,Benavidez,Mercado,Real Bravo C.F,150010,150000,10,0.0,Compra
-2026-08-14 05:02,Antony,Mercado,Xiks United,10696969,9980000,716969,7.2,Compra
-2026-08-14 03:08,Gayà,Xiks United,Mercado,2785700,2480000,305700,12.3,Venta
-2026-08-13 23:23,Ville Koski,Los Ronaldos FC,Mercado,1766300,1680000,86300,5.1,Venta
+2026-08-15 02:47,Javi Guerra,Xiks United,La Real Vinotinto C.F,4842000,4810000,32000,0.7,Traspaso Rival
+2026-08-15 01:05,Julián Alvarez,elAmerican C.F.,Mercado,11596100,9780000,1816100,18.6,Venta
+2026-08-14 20:56,Bellerín,Real Gardel Sharks,La Real Vinotinto C.F,3200000,2820000,380000,13.5,Traspaso Rival
+2026-08-14 19:18,Manu Bueno,Real Bravo C.F,Mercado,151800,570000,-418200,-73.4,Venta
+2026-08-14 19:18,Davinchi,Racing Puppies Scuderia,Los Ronaldos FC,2424070,1570000,854070,54.4,Traspaso Rival
+2026-08-14 18:01,Robert Navarro,Racing Puppies Scuderia,Real Bravo C.F,2685331,2120000,565331,26.7,Traspaso Rival
+2026-08-14 15:07,Germán Valera,La Real Vinotinto C.F,Mercado,6743600,6660000,83600,1.3,Venta
+2026-08-14 08:21,Loureiro,U. D. Victormenta,Mercado,2231000,1550000,681000,43.9,Venta
+2026-08-14 06:30,Adrián Niño,American Corruption,Mercado,1230000,970000,260000,26.8,Venta
+2026-08-14 05:22,Agoumé,Los Ronaldos FC,La Real Vinotinto C.F,2900000,2600000,300000,11.5,Traspaso Rival
