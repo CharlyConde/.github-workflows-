@@ -27,8 +27,7 @@ st.set_page_config(
 # CONFIGURACIÓN Y ENLACE DE GOOGLE DRIVE
 # ==========================================
 # Pega aquí el enlace compartido de Google Drive o el ID del archivo
-# Ejemplo: "12345abcdefg... o https://drive.google.com/file/d/TU_ID/view?usp=sharing"
-GOOGLE_DRIVE_URL = "https://drive.google.com/file/d/1l276NW_Zw783y-3ol2B5Bd_4sU4014Px/view?usp=drive_link" 
+GOOGLE_DRIVE_URL = "" 
 
 # ==========================================
 # CONFIGURACIÓN Y ESTILOS CSS
@@ -170,7 +169,6 @@ def descargar_desde_google_drive_publico():
         return
         
     try:
-        # Extraer el ID del archivo desde el enlace de Google Drive
         match = re.search(r'/d/([a-zA-Z0-9_-]+)', GOOGLE_DRIVE_URL)
         if match:
             file_id = match.group(1)
@@ -186,12 +184,16 @@ def descargar_desde_google_drive_publico():
 
 def load_data():
     csv_file = "historial_biwenger_completo.csv"
-    # Intentar descargar la versión más fresca desde Google Drive
     descargar_desde_google_drive_publico()
     
     if os.path.exists(csv_file):
         try:
             df = pd.read_csv(csv_file)
+            # Limpieza básica de espacios en nombres de mánagers para evitar duplicados
+            if "Vendedor" in df.columns:
+                df["Vendedor"] = df["Vendedor"].astype(str).str.strip()
+            if "Comprador" in df.columns:
+                df["Comprador"] = df["Comprador"].astype(str).str.strip()
             return df, csv_file
         except Exception as e:
             st.error(f"Error al leer el archivo CSV: {e}")
@@ -405,13 +407,25 @@ with tab_kpis:
 
     st.divider()
 
+    # --- CÁLCULO SEGURO DE CAJA Y GASTOS ---
     PRESUPUESTO_INICIAL = 45_000_000
+
+    # Gastos totales por comprador (excluyendo al Mercado como comprador)
     df_gastos_tot = df[df["Comprador"] != "Mercado"].groupby("Comprador")["Precio Operación"].sum().reset_index()
     df_gastos_tot.columns = ["Manager", "GastoTotal"]
+
+    # Ingresos totales por vendedor (excluyendo al Mercado como vendedor)
     df_ventas_tot = df[df["Vendedor"] != "Mercado"].groupby("Vendedor")["Precio Operación"].sum().reset_index()
     df_ventas_tot.columns = ["Manager", "IngresoTotal"]
 
-    df_caja = pd.merge(df_gastos_tot, df_ventas_tot, on="Manager", how="outer").fillna(0)
+    # Unificar en una sola tabla de mánagers de forma limpia
+    lista_managers = sorted(list(set(df_gastos_tot["Manager"]).union(set(df_ventas_tot["Manager"]))))
+    df_caja = pd.DataFrame({"Manager": lista_managers})
+    
+    df_caja = pd.merge(df_caja, df_gastos_tot, on="Manager", how="left").fillna(0)
+    df_caja = pd.merge(df_caja, df_ventas_tot, on="Manager", how="left").fillna(0)
+
+    # Fórmula correcta de caja: Presupuesto + Ingresos - Gastos
     df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
     df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
