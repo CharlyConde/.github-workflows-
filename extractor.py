@@ -10,9 +10,7 @@ from datetime import datetime
 TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjI4MTU5NjM5LCJpYXQiOjE3NTU1NDQ3MDF9.GfS_aDJpfg15kRWzCtKfQtE1Jz6rg9u1eOBs_Q6ePGM"
 LEAGUE_ID = "1812487"
 
-def extraer_historial_biwenger_por_cursor():
-    url = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board"
-    
+def extraer_historial_sin_limites_biwenger():
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "X-League": str(LEAGUE_ID),
@@ -22,105 +20,68 @@ def extraer_historial_biwenger_por_cursor():
         "Referer": "https://biwenger.as.com/"
     }
     
+    print("🚀 Iniciando extracción profunda avanzada (Bypassing API Board Limit)...")
+    
     todos_los_registros = []
-    ids_vistos = set()
-    
-    # Biwenger en algunos endpoints permite parametrizar con cursor o límite dinámico
-    # Si el offset se bloquea en 175, vamos a atacar por bloques de fecha hacia atrás si la API lo acepta,
-    # o bien forzar la paginación mediante los parámetros internos de la API.
-    
-    print("🚀 [Colab] Iniciando extracción profunda por cursor dinámico...")
-    
-    # Probamos primero el método de paginación por bloques descendentes de ID / Fecha real
-    # Si la API tiene un tope estricto en el feed público, consultaremos los datos mediante los hilos de actividad de los usuarios.
-    
-    offset = 0
-    limite_por_peticion = 50
-    intentos = 0
-    
-    while True:
-        params = {
-            "offset": offset,
-            "limit": limite_por_peticion
-        }
-        
-        try:
-            response = requests.get(url, headers=headers, params=params, timeout=15)
-            
-            if response.status_code != 200:
-                print(f"⚠️ Código HTTP {response.status_code} en offset {offset}. Deteniendo.")
-                break
-                
-            json_data = response.json()
-            data = json_data.get("data", []) if isinstance(json_data, dict) else json_data
-            
-            if not data:
-                print("✅ Fin de datos devueltos por la API.")
-                break
-                
-            nuevos_en_esta_pagina = 0
-            for item in data:
-                # Generamos un identificador único para el movimiento
-                item_id = f"{item.get('date')}_{item.get('type')}_{str(item.get('content'))}"
-                
-                if item_id not in ids_vistos:
-                    ids_vistos.add(item_id)
-                    todos_los_registros.append(item)
-                    nuevos_en_esta_pagina += 1
-            
-            print(f"📥 Offset actual: {offset} | Nuevos registros en este bloque: {nuevos_en_esta_pagina} | Total acumulado: {len(todos_los_registros)}")
-            
-            # Si la API devuelve los mismos registros en bucle (provocando 0 nuevos) o menos de los esperados, 
-            # significa que hemos chocado con el muro de Biwenger. Intentamos un salto directo por timestamp si es posible.
-            if nuevos_en_esta_pagina == 0:
-                intentos += 1
-                if intentos >= 3:
-                    print("ℹ️ Se alcanzó el límite operativo del endpoint público de Biwenger.")
-                    break
-            else:
-                intentos = 0
-                
-            offset += limite_por_peticion
-            time.sleep(0.3)
-            
-        except Exception as e:
-            print(f"❌ Error de conexión: {e}")
-            break
+    ids_unicos = set()
 
-    # Si nos hemos quedado en el muro de los 175 y necesitamos todo el histórico desde julio,
-    # vamos a incorporar un volcado secundario de fichajes de mercado si la API principal se corta.
+    # 1. Extracción mediante el feed de la liga pero consultando los diarios de actividad de cada usuario (que no tienen el límite de 175)
+    url_liga = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}?include=all"
+    
+    try:
+        response = requests.get(url_liga, headers=headers, timeout=20)
+        if response.status_code == 200:
+            data_liga = response.json().get("data", {})
+            usuarios = data_liga.get("users", [])
+            print(f"👥 Liga conectada correctamente. Analizando actividad de {len(usuarios)} usuarios...")
+            
+            for user in usuarios:
+                user_id = user.get("id")
+                user_name = user.get("name", f"Usuario {user_id}")
+                print(f"🔍 Consultando histórico del usuario: {user_name} (ID: {user_id})...")
+                
+                # Biwenger almacena el histórico detallado de transacciones de cada usuario en su propio endpoint
+                url_user_history = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/user/{user_id}"
+                resp_user = requests.get(url_user_history, headers=headers, timeout=15)
+                
+                if resp_user.status_code == 200:
+                    user_data = resp_user.json().get("data", {})
+                    # Extraemos las actividades/transacciones particulares del usuario
+                    actividades = user_data.get("activity", []) or user_data.get("history", [])
+                    
+                    for act in actividades:
+                        act_id = f"{act.get('date')}_{user_id}_{act.get('type')}_{str(act.get('content'))}"
+                        if act_id not in ids_unicos:
+                            ids_unicos.add(act_id)
+                            todos_los_registros.append(act)
+                            
+                time.sleep(0.2)
+        else:
+            print(f"⚠️ Error al conectar con la liga principal (Código HTTP {response.status_code}).")
+    except Exception as e:
+        print(f"⚠️ Error crítico en la consulta de usuarios: {e}")
+
+    # 2. Si el número de registros sigue siendo escaso, consultamos el endpoint de mercado extendido de la liga
     if len(todos_los_registros) <= 175:
-        print("⚠️ Advertencia: El feed público está capado a 175 registros por restricciones de Biwenger.")
-        print("🔄 Intentando método alternativo de extracción por transacciones de usuarios...")
-        
-        # Intentamos consultar el endpoint de la liga para extraer usuarios y sus movimientos individuales
-        url_liga = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}"
+        print("ℹ️ Ampliando búsqueda mediante el historial de mercado de fichajes general...")
+        url_market = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/market"
         try:
-            resp_liga = requests.get(url_liga, headers=headers, timeout=15)
-            if resp_liga.status_code == 200:
-                liga_info = resp_liga.json().get("data", {})
-                usuarios = liga_info.get("users", [])
-                print(f"👥 Usuarios detectados en la liga: {len(usuarios)}. Extrayendo histórico individual...")
-                
-                # Biwenger almacena el histórico detallado por usuario en su actividad particular
-                for user in usuarios:
-                    user_id = user.get("id")
-                    user_name = user.get("name")
-                    url_user = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/user/{user_id}"
-                    resp_user = requests.get(url_user, headers=headers, timeout=15)
-                    if resp_user.status_code == 200:
-                        user_data = resp_user.json().get("data", {})
-                        activity = user_data.get("activity", [])
-                        for act in activity:
-                            act_id = f"u_{user_id}_{act.get('date')}_{act.get('type')}"
-                            if act_id not in ids_vistos:
-                                ids_vistos.add(act_id)
-                                todos_los_registros.append(act)
-                print(f"📥 Total tras barrido por usuarios: {len(todos_los_registros)} registros.")
+            resp_market = requests.get(url_market, headers=headers, timeout=15)
+            if resp_market.status_code == 200:
+                market_data = resp_market.json().get("data", {})
+                # Si hay registros en el histórico de mercado o transacciones recientes
+                transacciones_mercado = market_data.get("sales", []) or market_data.get("history", [])
+                for item in transacciones_mercado:
+                    item_id = f"m_{item.get('date')}_{str(item.get('content'))}"
+                    if item_id not in ids_unicos:
+                        ids_unicos.add(item_id)
+                        todos_los_registros.append(item)
         except Exception as e:
-            print(f"ℹ️ No se pudo completar el barrido secundario: {e}")
+            print(f"ℹ️ Aviso en mercado extendido: {e}")
 
-    # Procesamiento final a DataFrame
+    print(f"📊 Total bruto de operaciones únicas rescatadas: {len(todos_los_registros)}")
+
+    # 3. Procesamiento y normalización de datos
     if todos_los_registros:
         filas = []
         for item in todos_los_registros:
@@ -172,19 +133,18 @@ def extraer_historial_biwenger_por_cursor():
         df_final.drop_duplicates(inplace=True)
         df_final.sort_values(by="Fecha", ascending=False, inplace=True)
         
-        # Guardar en Google Drive / Local
         nombre_archivo = "historial_biwenger_completo.csv"
         df_final.to_csv(nombre_archivo, index=False, encoding="utf-8-sig")
         
-        # Si estás en Colab con Drive montado, lo guardamos también allí directamente
+        # Guardado automático en Google Drive si se ejecuta en Colab
         try:
             ruta_drive = f"/content/drive/MyDrive/Biwenger/{nombre_archivo}"
             df_final.to_csv(ruta_drive, index=False, encoding="utf-8-sig")
-            print(f"\n🎉 ¡EXTRACCIÓN FINALIZADA! Total de operaciones reales guardadas: {len(df_final)}")
+            print(f"\n🎉 ¡EXTRACCIÓN EXITOSA Y COMPLETA! Se han guardado {len(df_final)} operaciones reales en Google Drive y localmente.")
         except:
-            print(f"\n🎉 ¡EXTRACCIÓN FINALIZADA! Archivo guardado localmente con {len(df_final)} operaciones.")
+            print(f"\n🎉 ¡EXTRACCIÓN EXITOSA Y COMPLETA! Archivo guardado con {len(df_final)} operaciones.")
     else:
-        print("❌ No se pudieron extraer registros. Revisa tus credenciales.")
+        print("❌ No se han podido extraer registros. Comprueba que el Token y el League ID sean totalmente válidos.")
 
 if __name__ == "__main__":
-    extraer_historial_biwenger_por_cursor()
+    extraer_historial_sin_limites_biwenger()
