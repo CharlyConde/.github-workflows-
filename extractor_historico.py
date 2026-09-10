@@ -3,8 +3,8 @@ import pandas as pd
 import os
 from datetime import datetime
 
-TOKEN = "TU_TOKEN_DE_AUTORIZACION"
-LEAGUE_ID = "TU_ID_DE_LIGA"
+TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjI4MTU5NjM5LCJpYXQiOjE3NTU1NDQ3MDF9.GfS_aDJpfg15kRWzCtKfQtE1Jz6rg9u1eOBs_Q6ePGM"
+LEAGUE_ID = "1812487"
 NOMBRE_ARCHIVO = "historial_biwenger_completo.csv"
 
 def rescatar_meses_pasados():
