@@ -28,7 +28,7 @@ jobs:
           BIWENGER_TOKEN: ${{ secrets.BIWENGER_TOKEN }}
           BIWENGER_LEAGUE: ${{ secrets.BIWENGER_LEAGUE }}
           BIWENGER_USER: ${{ secrets.BIWENGER_USER }}
-        run: python extractor.py
+        run: python extractor_historico.py
 
       - name: Guardar y commitear cambios en el CSV
         run: |
