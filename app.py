@@ -3,7 +3,6 @@ import base64
 import re
 import xml.etree.ElementTree as ET
 from urllib.request import Request, urlopen
-import urllib.request
 
 import pandas as pd
 import plotly.express as px
@@ -189,7 +188,6 @@ def load_data():
     if os.path.exists(csv_file):
         try:
             df = pd.read_csv(csv_file)
-            # Limpieza básica de espacios en nombres de mánagers para evitar duplicados
             if "Vendedor" in df.columns:
                 df["Vendedor"] = df["Vendedor"].astype(str).str.strip()
             if "Comprador" in df.columns:
@@ -407,26 +405,28 @@ with tab_kpis:
 
     st.divider()
 
-    # --- CÁLCULO SEGURO DE CAJA Y GASTOS ---
+    # --- CÁLCULO CONTABLE EXACTO DE CAJA ---
     PRESUPUESTO_INICIAL = 45_000_000
 
-    # Gastos totales por comprador (excluyendo al Mercado como comprador)
-    df_gastos_tot = df[df["Comprador"] != "Mercado"].groupby("Comprador")["Precio Operación"].sum().reset_index()
-    df_gastos_tot.columns = ["Manager", "GastoTotal"]
+    # Gastos y ventas totales por mánager de forma explícita
+    todos_los_managers = sorted(list(set(df["Comprador"].dropna()).union(set(df["Vendedor"].dropna()))))
+    if "Mercado" in todos_los_managers:
+        todos_los_managers.remove("Mercado")
 
-    # Ingresos totales por vendedor (excluyendo al Mercado como vendedor)
-    df_ventas_tot = df[df["Vendedor"] != "Mercado"].groupby("Vendedor")["Precio Operación"].sum().reset_index()
-    df_ventas_tot.columns = ["Manager", "IngresoTotal"]
+    data_caja = []
+    for m in todos_los_managers:
+        gasto = df[df["Comprador"] == m]["Precio Operación"].sum()
+        ingreso = df[df["Vendedor"] == m]["Precio Operación"].sum()
+        
+        caja_estimada = PRESUPUESTO_INICIAL + ingreso - gasto
+        data_caja.append({
+            "Manager": m,
+            "GastoTotal": gasto,
+            "IngresoTotal": ingreso,
+            "Caja_Estimada": caja_estimada
+        })
 
-    # Unificar en una sola tabla de mánagers de forma limpia
-    lista_managers = sorted(list(set(df_gastos_tot["Manager"]).union(set(df_ventas_tot["Manager"]))))
-    df_caja = pd.DataFrame({"Manager": lista_managers})
-    
-    df_caja = pd.merge(df_caja, df_gastos_tot, on="Manager", how="left").fillna(0)
-    df_caja = pd.merge(df_caja, df_ventas_tot, on="Manager", how="left").fillna(0)
-
-    # Fórmula correcta de caja: Presupuesto + Ingresos - Gastos
-    df_caja["Caja_Estimada"] = PRESUPUESTO_INICIAL + df_caja["IngresoTotal"] - df_caja["GastoTotal"]
+    df_caja = pd.DataFrame(data_caja)
     df_caja = df_caja.sort_values(by="Caja_Estimada", ascending=False)
     df_caja["Caja_Fmt"] = df_caja["Caja_Estimada"].apply(fmt)
 
@@ -441,7 +441,7 @@ with tab_kpis:
 
     st.divider()
     st.subheader("📊 Gasto Total por Mánager")
-    df_gasto_chart = df_gastos_tot.sort_values(by="GastoTotal", ascending=False).copy()
+    df_gasto_chart = df_caja.sort_values(by="GastoTotal", ascending=False).copy()
     df_gasto_chart["Gasto_Fmt"] = df_gasto_chart["GastoTotal"].apply(fmt)
     
     fig_gasto = px.bar(
@@ -454,7 +454,7 @@ with tab_kpis:
 
     st.divider()
     st.subheader("💰 Ingresos por Ventas")
-    df_venta_chart = df_ventas_tot.sort_values(by="IngresoTotal", ascending=False).copy()
+    df_venta_chart = df_caja.sort_values(by="IngresoTotal", ascending=False).copy()
     df_venta_chart["Ingreso_Fmt"] = df_venta_chart["IngresoTotal"].apply(fmt)
     
     fig_venta = px.bar(
