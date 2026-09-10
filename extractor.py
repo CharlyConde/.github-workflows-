@@ -1,139 +1,101 @@
-import os
-import pandas as pd
 import requests
+import pandas as pd
+import time
 
-# Leemos las credenciales desde los secretos de GitHub
-AUTH_TOKEN = os.getenv('BIWENGER_TOKEN')
-LEAGUE_ID = os.getenv('BIWENGER_LEAGUE')
-USER_ID = os.getenv('BIWENGER_USER')
+# ==========================================
+# CONFIGURACIÓN DE ACCESO A LA API DE BIWENGER
+# ==========================================
+# Inserta aquí tu token de sesión (Bearer token) y el ID de tu liga
+TOKEN = "TU_TOKEN_DE_AUTORIZACION"
+LEAGUE_ID = "TU_ID_DE_LIGA"
 
-headers = {
-    'authorization': AUTH_TOKEN.strip(),
-    'x-league': str(LEAGUE_ID).strip(),
-    'x-user': str(USER_ID).strip(),
-    'Accept': 'application/json',
-    'User-Agent': (
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    ),
-}
-
-# 1. Obtener diccionario global de jugadores
-url_players = (
-    'https://biwenger.as.com/api/v2/competitions/la-liga/data?lang=es&score=1'
-)
-res_players = requests.get(url_players, headers=headers)
-
-mapa_jugadores = {}
-if res_players.status_code == 200:
-    data_players = res_players.json().get('data', {}).get('players', {})
-    for p_id, p_data in data_players.items():
-        mapa_jugadores[int(p_id)] = {
-            'nombre': p_data.get('name', 'Desconocido'),
-            'precio': p_data.get('price', 0),
-        }
-
-# 2. Extraer historial incluyendo 'auction' y los tipos de operaciones
-url_board = f'https://biwenger.as.com/api/v2/league/{LEAGUE_ID.strip()}/board?type=transfer,market,clauseIncrement,clause,auction&limit=100'
-response = requests.get(url_board, headers=headers)
-
-movimientos = []
-
-if response.status_code == 200:
-    items = response.json().get('data', [])
-    for entry in items:
-        tipo_evento = str(entry.get('type', 'transfer')).lower()
+def descargar_historial_infinito():
+    # Endpoint oficial de la pizarra / actividades de la liga en Biwenger
+    url = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board"
+    
+    headers = {
+        "Authorization": f"Bearer {TOKEN}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "application/json, text/plain, */*"
+    }
+    
+    offset = 0
+    limit = 50  # Tamaño del bloque por petición
+    todos_los_registros = []
+    
+    print("🚀 Iniciando extracción completa de la pizarra de Biwenger...")
+    
+    while True:
+        params = {"offset": offset, "limit": limit}
         
-        content = entry.get('content', [])
-        if isinstance(content, dict):
-            content = [content]
-        elif not isinstance(content, list):
-            continue
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            
+            if response.status_code != 200:
+                print(f"❌ Error en la API de Biwenger. Código HTTP: {response.status_code}")
+                # Si falla el board, probamos con el endpoint alternativo de actividades
+                url_alt = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/activities"
+                response = requests.get(url_alt, headers=headers, params=params)
+                if response.status_code != 200:
+                    break
 
-        fecha_ts = entry.get('date')
-        fecha_str = (
-            pd.to_datetime(fecha_ts, unit='s').strftime('%Y-%m-%d %H:%M')
-            if fecha_ts
-            else ''
-        )
+            data = response.json().get("data", [])
+            
+            # Si la API ya no devuelve elementos, hemos llegado al origen de la liga
+            if not data:
+                print("✅ Se han descargado absolutamente todos los registros históricos disponibles.")
+                break
+                
+            todos_los_registros.extend(data)
+            print(f"📥 Registros acumulados hasta el momento: {len(todos_los_registros)}")
+            
+            # Avanzamos el offset para la siguiente página
+            offset += limit
+            time.sleep(0.3)  # Pequeña pausa para evitar bloqueos por rate-limit
+            
+        except Exception as e:
+            print(f"⚠️ Ocurrió un error durante la petición: {e}")
+            break
 
-        for item in content:
-            if isinstance(item, dict):
-                p_obj = item.get('player')
-                p_id = (
-                    p_obj.get('id')
-                    if isinstance(p_obj, dict)
-                    else (p_obj if isinstance(p_obj, int) else None)
-                )
+    if todos_los_registros:
+        filas = []
+        for item in todos_los_registros:
+            tipo = item.get("type", "")
+            date = item.get("date", "")
+            content = item.get("content", {})
+            
+            # Extracción robusta de campos mapeados
+            jugador = content.get("player", {}).get("name", "Desconocido")
+            precio = content.get("amount", 0)
+            valor = content.get("value", 0)
+            
+            vendedor_obj = content.get("from")
+            vendedor = vendedor_obj.get("name", "Mercado") if vendedor_obj else "Mercado"
+            
+            comprador_obj = content.get("to") or content.get("user")
+            comprador = comprador_obj.get("name", "Mercado") if comprador_obj else "Mercado"
 
-                info_global = mapa_jugadores.get(p_id, {}) if p_id else {}
-                nombre_jugador = (
-                    (p_obj.get('name') if isinstance(p_obj, dict) else None)
-                    or info_global.get('nombre')
-                    or 'Desconocido'
-                )
-                valor_mercado = (
-                    (p_obj.get('price') if isinstance(p_obj, dict) else None)
-                    or info_global.get('precio')
-                    or item.get('price', 0)
-                )
+            filas.append({
+                "Fecha": date,
+                "Tipo": tipo,
+                "Jugador": jugador,
+                "Precio Operación": precio,
+                "Valor Mercado": valor,
+                "Vendedor": vendedor,
+                "Comprador": comprador
+            })
+            
+        df_final = pd.DataFrame(filas)
+        
+        # Limpieza de duplicados y orden cronológico
+        df_final.drop_duplicates(inplace=True)
+        df_final.sort_values(by="Fecha", ascending=False, inplace=True)
+        
+        nombre_archivo = "historial_biwenger_completo.csv"
+        df_final.to_csv(nombre_archivo, index=False, encoding="utf-8-sig")
+        print(f"🎉 ¡Archivo '{nombre_archivo}' actualizado con éxito con {len(df_final)} registros!")
+    else:
+        print("⚠️ No se pudieron rescatar registros. Revisa que tu Token y tu LEAGUE_ID sean correctos.")
 
-                vendedor = item.get('from', {})
-                nombre_vendedor = (
-                    vendedor.get('name', 'Mercado')
-                    if isinstance(vendedor, dict)
-                    else 'Mercado'
-                )
-
-                comprador = item.get('to', {}) or item.get('user', {})
-                nombre_comprador = (
-                    comprador.get('name', 'Mercado')
-                    if isinstance(comprador, dict)
-                    else 'Mercado'
-                )
-
-                precio_fichaje = item.get('amount', item.get('price', 0))
-
-                # Asignación limpia de nombres de tipos en castellano
-                tipo_final = 'Compra'
-                if 'auction' in tipo_evento:
-                    tipo_final = 'Subasta'
-                elif 'market' in tipo_evento:
-                    tipo_final = 'Compra'
-                elif 'transfer' in tipo_evento and nombre_comprador == 'Mercado':
-                    tipo_final = 'Venta'
-                elif 'clause' in tipo_evento or 'clausulazo' in tipo_evento:
-                    tipo_final = 'Clausulazo'
-                elif nombre_vendedor != 'Mercado' and nombre_comprador != 'Mercado':
-                    if 'clause' in str(item).lower():
-                        tipo_final = 'Clausulazo'
-                    else:
-                        tipo_final = 'Traspaso Rival'
-
-                if precio_fichaje > 0:
-                    sobreprecio_euro = (
-                        precio_fichaje - valor_mercado
-                        if valor_mercado > 0
-                        else 0
-                    )
-                    porcentaje_sobreprecio = (
-                        (sobreprecio_euro / valor_mercado) * 100
-                        if valor_mercado > 0
-                        else 0
-                    )
-
-                    movimientos.append({
-                        'Fecha': fecha_str,
-                        'Jugador': nombre_jugador,
-                        'Vendedor': nombre_vendedor,
-                        'Comprador': nombre_comprador,
-                        'Precio Operación': precio_fichaje,
-                        'Valor Mercado': valor_mercado,
-                        'Sobreprecio (€)': sobreprecio_euro,
-                        'Sobreprecio (%)': round(porcentaje_sobreprecio, 1),
-                        'Tipo': tipo_final,
-                    })
-
-    if movimientos:
-        df = pd.DataFrame(movimientos)
-        df.to_csv('historial_biwenger_completo.csv', index=False)
-        print('✅ Archivo CSV actualizado correctamente.')
+if __name__ == "__main__":
+    descargar_historial_infinito()
