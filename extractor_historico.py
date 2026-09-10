@@ -3,11 +3,20 @@ import pandas as pd
 import os
 from datetime import datetime
 
-TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjI4MTU5NjM5LCJpYXQiOjE3NTU1NDQ3MDF9.GfS_aDJpfg15kRWzCtKfQtE1Jz6rg9u1eOBs_Q6ePGM"
-LEAGUE_ID = "1812487"
+# ==========================================
+# LECTURA SEGURA DE CREDENCIALES DESDE GITHUB SECRETS
+# ==========================================
+TOKEN = os.environ.get("BIWENGER_TOKEN")
+LEAGUE_ID = os.environ.get("BIWENGER_LEAGUE")
 NOMBRE_ARCHIVO = "historial_biwenger_completo.csv"
 
-def rescatar_meses_pasados():
+# Fallback por seguridad si se ejecuta localmente
+if not TOKEN:
+    TOKEN = "TU_TOKEN_DE_AUTORIZACION"
+if not LEAGUE_ID:
+    LEAGUE_ID = "TU_ID_DE_LIGA"
+
+def sincronizador_maestro_biwenger():
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "X-League": str(LEAGUE_ID),
@@ -16,30 +25,33 @@ def rescatar_meses_pasados():
         "Referer": "https://biwenger.as.com/"
     }
     
-    print("🚀 [Fase 1] Iniciando rescate de operaciones históricas de Julio y Agosto...")
+    print(f"🚀 [SISTEMA MAESTRO] Conectando a Biwenger para la Liga ID: {LEAGUE_ID}...")
     
     todos_los_registros = []
     ids_unicos = set()
 
-    # 1. Cargamos lo que ya tengamos guardado previamente para no perder nada
+    # 1. Cargar base de datos previa existente (si existe)
     if os.path.exists(NOMBRE_ARCHIVO):
-        df_previo = pd.read_csv(NOMBRE_ARCHIVO)
-        for _, row in df_previo.iterrows():
-            k = f"{row.get('Fecha')}_{row.get('Tipo')}_{row.get('Jugador')}_{row.get('Precio Operación')}"
-            ids_unicos.add(k)
-            todos_los_registros.append(row.to_dict())
-        print(f"📂 Archivo existente cargado con {len(todos_los_registros)} registros previos.")
+        try:
+            df_previo = pd.read_csv(NOMBRE_ARCHIVO)
+            for _, row in df_previo.iterrows():
+                k = f"{row.get('Fecha')}_{row.get('Tipo')}_{row.get('Jugador')}_{row.get('Precio Operación')}"
+                ids_unicos.add(k)
+                todos_los_registros.append(row.to_dict())
+            print(f"📂 Archivo previo cargado: {len(todos_los_registros)} registros en memoria.")
+        except Exception as e:
+            print(f"⚠️ Aviso leyendo archivo previo: {e}")
 
-    # 2. Extracción a través de las jornadas (Rounds) para capturar julio y agosto
-    print("🔄 Consultando calendario de jornadas para extraer eventos históricos específicos...")
+    # 2. Rescate histórico mediante barrido de jornadas (para capturar Julio, Agosto y Septiembre)
+    print("🔄 Barrido de jornadas históricas (Julio - Septiembre)...")
     url_rounds = "https://biwenger.as.com/api/v2/rounds"
     try:
         resp_rounds = requests.get(url_rounds, headers=headers, timeout=15)
         if resp_rounds.status_code == 200:
             rounds_data = resp_rounds.json().get("data", [])
+            print(f"📅 Analizando {len(rounds_data)} jornadas de la temporada...")
             for round_item in rounds_data:
                 round_id = round_item.get("id")
-                # Consultamos el tablón filtrado por cada jornada histórica
                 if round_id:
                     url_board_round = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board?round={round_id}"
                     resp_rd = requests.get(url_board_round, headers=headers, timeout=10)
@@ -57,8 +69,8 @@ def rescatar_meses_pasados():
                                 except:
                                     date = str(timestamp)
 
-                                # Filtramos estrictamente que pertenezca a julio o agosto de 2026
-                                if date.startswith("2026-07") or date.startswith("2026-08"):
+                                # Solo desde el 1 de julio de 2026 en adelante
+                                if date >= "2026-07-01":
                                     content = item.get("content", {})
                                     if not isinstance(content, dict):
                                         content = {}
@@ -87,25 +99,78 @@ def rescatar_meses_pasados():
                                             "Comprador": comprador if comprador else "Mercado"
                                         })
     except Exception as e:
-        print(f"⚠️ Aviso en rescate por jornadas: {e}")
+        print(f"⚠️ Aviso en barrido de jornadas: {e}")
 
-    # 3. Consolidación y guardado seguro del histórico completo (Julio + Agosto + Septiembre)
+    # 3. Captura del tablón actual en tiempo real (últimos movimientos recientes)
+    print("📥 Capturando feed actual de la API...")
+    url_board = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board"
+    try:
+        response = requests.get(url_board, headers=headers, timeout=20)
+        if response.status_code == 200:
+            data = response.json().get("data", [])
+            print(f"📥 Tablón actual descargado con {len(data)} elementos.")
+            for item in data:
+                tipo = item.get("type", "")
+                timestamp = item.get("date", "")
+                try:
+                    if isinstance(timestamp, (int, float)):
+                        date = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+                    else:
+                        date = str(timestamp)
+                except:
+                    date = str(timestamp)
+
+                if date >= "2026-07-01":
+                    content = item.get("content", {})
+                    if not isinstance(content, dict):
+                        content = {}
+
+                    jugador_obj = content.get("player", {})
+                    nombre_jugador = jugador_obj.get("name", "Desconocido") if isinstance(jugador_obj, dict) else "Desconocido"
+                    precio = content.get("amount", 0)
+                    valor = content.get("value", 0)
+                    
+                    vendedor_obj = content.get("from")
+                    vendedor = vendedor_obj.get("name", "Mercado") if isinstance(vendedor_obj, dict) else "Mercado"
+                    
+                    comprador_obj = content.get("to") or content.get("user")
+                    comprador = comprador_obj.get("name", "Mercado") if isinstance(comprador_obj, dict) else "Mercado"
+
+                    item_key = f"{date}_{tipo}_{nombre_jugador}_{precio}"
+                    if item_key not in ids_unicos:
+                        ids_unicos.add(item_key)
+                        todos_los_registros.append({
+                            "Fecha": date,
+                            "Tipo": tipo,
+                            "Jugador": nombre_jugador,
+                            "Precio Operación": precio,
+                            "Valor Mercado": valor,
+                            "Vendedor": vendedor if vendedor else "Mercado",
+                            "Comprador": comprador if comprador else "Mercado"
+                        })
+    except Exception as e:
+        print(f"⚠️ Aviso capturando tablero actual: {e}")
+
+    # 4. Consolidación, filtrado estricto y ordenación
     if todos_los_registros:
         df_final = pd.DataFrame(todos_los_registros)
         
-        # Filtro estricto desde el 1 de julio de 2026 en adelante
+        # Filtro estricto de fecha desde el 1 de julio de 2026
         df_final['Fecha_dt'] = pd.to_datetime(df_final['Fecha'], errors='coerce')
         fecha_corte = pd.to_datetime('2026-07-01')
         df_final = df_final[df_final['Fecha_dt'] >= fecha_corte]
         df_final.drop(columns=['Fecha_dt'], inplace=True, errors='ignore')
         
+        # Eliminar duplicados absolutos garantizados
         df_final.drop_duplicates(subset=["Fecha", "Tipo", "Jugador", "Precio Operación", "Comprador"], keep="first", inplace=True)
         df_final.sort_values(by="Fecha", ascending=False, inplace=True)
         
+        # Guardado final del CSV maestro
         df_final.to_csv(NOMBRE_ARCHIVO, index=False, encoding="utf-8-sig")
-        print(f"\n🎉 ¡rescate HISTÓRICO COMPLETADO! Archivo consolidado con {len(df_final)} operaciones únicas.")
+        print(f"\n🎉 ¡SINCRONIZACIÓN MAESTRA COMPLETADA!")
+        print(f"📊 Total absoluto de transacciones únicas acumuladas en '{NOMBRE_ARCHIVO}': {len(df_final)}")
     else:
-        print("❌ No se pudieron rescatar registros adicionales.")
+        print("❌ No se pudieron procesar registros. Comprueba que los Secrets en GitHub estén bien configurados.")
 
 if __name__ == "__main__":
-    rescatar_meses_pasados()
+    sincronizador_maestro_biwenger()
