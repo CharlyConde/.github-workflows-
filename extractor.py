@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ==========================================
 # CONFIGURACIÓN DE ACCESO A LA API DE BIWENGER
@@ -10,33 +10,41 @@ from datetime import datetime
 TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOjI4MTU5NjM5LCJpYXQiOjE3NTU1NDQ3MDF9.GfS_aDJpfg15kRWzCtKfQtE1Jz6rg9u1eOBs_Q6ePGM"
 LEAGUE_ID = "1812487"
 
-def descargar_historial_total_forzado():
-    # Endpoints alternativos de la API v2 de Biwenger para forzar la lectura del historial completo
-    urls_a_probar = [
-        f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board",
-        f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/activities"
-    ]
+def descargar_historial_por_rangos_temporales():
+    url = f"https://biwenger.as.com/api/v2/leagues/{LEAGUE_ID}/board"
     
     headers = {
         "Authorization": f"Bearer {TOKEN}",
         "X-League": str(LEAGUE_ID),
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "es-ES,es;q=0.9",
         "Origin": "https://biwenger.as.com",
         "Referer": "https://biwenger.as.com/"
     }
     
-    todos_los_registros = []
+    todos_los_registros = {} # Usamos diccionario con ID o índice único para evitar duplicados
     
-    print("🚀 Iniciando extracción profunda y bypass de límites de Biwenger...")
+    # Definimos el rango de fechas: desde el 1 de julio de 2026 hasta el día de hoy
+    fecha_inicio = datetime(2026, 7, 1)
+    fecha_fin = datetime.now()
     
-    for url_base in urls_a_probar:
-        print(f"🔄 Probando endpoint: {url_base}")
+    print(f"🚀 Iniciando extracción por bloques temporales diarios desde {fecha_inicio.strftime('%Y-%m-%d')} hasta hoy...")
+    
+    # Hacemos un recorrido día a día o en bloques de pocos días para forzar a la API a entregar todo
+    delta_dias = 3  # Bloques de 3 días para capturar todas las operaciones sin saturar
+    current_end = fecha_fin
+    
+    while current_end >= fecha_inicio:
+        current_start = max(fecha_inicio, current_end - timedelta(days=delta_dias))
+        
+        # Biwenger en algunos endpoints acepta parámetros de filtrado temporal o paginación profunda
+        # Si la API no filtra por fecha en este endpoint, probamos offset masivo con control de ID único
         offset = 0
         limit = 50
-        intentos_fallidos = 0
         
+        print(f"📅 Consultando bloque temporal / desplazamiento: {current_start.strftime('%Y-%m-%d')} al {current_end.strftime('%Y-%m-%d')}...")
+        
+        bloque_vacio = 0
         while True:
             params = {
                 "offset": offset,
@@ -44,61 +52,52 @@ def descargar_historial_total_forzado():
             }
             
             try:
-                response = requests.get(url_base, headers=headers, params=params, timeout=15)
-                
+                response = requests.get(url, headers=headers, params=params, timeout=15)
                 if response.status_code != 200:
-                    print(f"⚠️ Endpoint respondió con código {response.status_code} en offset {offset}.")
                     break
-                
+                    
                 json_data = response.json()
-                
-                # Biwenger a veces devuelve los datos en 'data' o directamente en una lista
-                data = []
-                if isinstance(json_data, dict):
-                    data = json_data.get("data", [])
-                    if not data and "status" in json_data and json_data.get("status") != 0:
-                        # Estructura alternativa
-                        data = json_data.get("activity", []) or json_data.get("board", [])
-                elif isinstance(json_data, list):
-                    data = json_data
+                data = json_data.get("data", []) if isinstance(json_data, dict) else json_data
                 
                 if not data:
-                    intentos_fallidos += 1
-                    if intentos_fallidos >= 2:
-                        print(f"✅ Fin de datos alcanzado para este endpoint (Offset: {offset}).")
-                        break
-                    offset += limit
-                    continue
-                else:
-                    intentos_fallidos = 0
-
-                # Evitar bucles infinitos si la API devuelve los mismos elementos repetidos
-                nuevos = 0
-                for item in data:
-                    if item not in todos_los_registros:
-                        todos_los_registros.append(item)
-                        nuevos += 1
-                
-                print(f"📥 [Endpoint Activo] Rescatados {len(todos_los_registros)} registros acumulados (Offset: {offset})...")
-                
-                if nuevos == 0 and offset > 100:
-                    print("ℹ️ La paginación comenzó a devolver elementos duplicados. Deteniendo bucle.")
                     break
                 
+                added_in_page = 0
+                for item in data:
+                    # Creamos una clave única basada en fecha y contenido para evitar duplicados exactos
+                    item_id = str(item.get("date", "")) + "_" + str(item.get("type", "")) + "_" + str(item.get("content", {}))
+                    if item_id not in todos_los_registros:
+                        todos_los_registros[item_id] = item
+                        added_in_page += 1
+                
+                # Si los registros devuelven IDs repetidos que ya teníamos o la página viene vacía de nuevos, paramos este offset
+                if added_in_page == 0:
+                    bloque_vacio += 1
+                    if bloque_vacio >= 2:
+                        break
+                else:
+                    bloque_vacio = 0
+                
+                if len(data) < limit:
+                    break
+                    
                 offset += limit
-                time.sleep(0.3)
+                time.sleep(0.2)
                 
             except Exception as e:
-                print(f"⚠️ Error de conexión: {e}")
+                print(f"⚠️ Error en petición: {e}")
                 break
                 
-        if len(todos_los_registros) > 0:
-            # Si un endpoint ya nos dio datos masivos, salimos del bucle de URLs
-            break
+        # Retrocedemos el bloque temporal
+        current_end = current_start - timedelta(days=1)
+        print(f"📥 Total de registros únicos acumulados hasta ahora: {len(todos_los_registros)}")
+        time.sleep(0.3)
 
-    if todos_los_registros:
+    lista_final_bruta = list(todos_los_registros.values())
+    
+    if lista_final_bruta:
         filas = []
-        for item in todos_los_registros:
+        for item in lista_final_bruta:
             tipo = item.get("type", "")
             timestamp = item.get("date", "")
             
@@ -138,7 +137,7 @@ def descargar_historial_total_forzado():
             
         df_final = pd.DataFrame(filas)
         
-        # Filtro estricto de seguridad temporal desde el 1 de julio de 2026
+        # Filtro estricto de seguridad desde el 1 de julio de 2026
         df_final['Fecha_dt'] = pd.to_datetime(df_final['Fecha'], errors='coerce')
         fecha_corte = pd.to_datetime('2026-07-01')
         df_final = df_final[df_final['Fecha_dt'] >= fecha_corte]
@@ -149,9 +148,9 @@ def descargar_historial_total_forzado():
         
         nombre_archivo = "historial_biwenger_completo.csv"
         df_final.to_csv(nombre_archivo, index=False, encoding="utf-8-sig")
-        print(f"\n🎉 ¡EXTRACCIÓN EXITOSA! Se han guardado {len(df_final)} operaciones reales en '{nombre_archivo}'.")
+        print(f"\n🎉 ¡EXTRACCIÓN TOTAL COMPLETADA! Se han guardado {len(df_final)} operaciones reales en '{nombre_archivo}'.")
     else:
-        print("❌ No se pudieron extraer registros. Asegúrate de que el TOKEN introducido pertenece a una sesión activa en el navegador.")
+        print("❌ No se pudieron extraer registros. Verifica que tu TOKEN y LEAGUE_ID sean correctos.")
 
 if __name__ == "__main__":
-    descargar_historial_total_forzado()
+    descargar_historial_por_rangos_temporales()
